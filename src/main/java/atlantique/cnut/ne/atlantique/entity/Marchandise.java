@@ -9,7 +9,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.util.Date;
-import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -71,27 +70,23 @@ public class Marchandise {
     @Column
     private String validation;
     @Column
+    private String idNatureMarchandise;
+    @Column
+    private String idArmateur;
+    @Column
     private Date dateValidation;
     @CreationTimestamp
     private Date creationDate;
     @UpdateTimestamp
     private Date modificationDate;
 
-    //les relations
-    @OneToOne(fetch = FetchType.EAGER)
-    private NatureMarchandise natureMarchandise;
-    @OneToOne(fetch = FetchType.EAGER)
-    private Cargaison cargaison;
-    @OneToOne(fetch = FetchType.EAGER)
-    private Armateur armateur;
     @OneToOne(fetch = FetchType.EAGER)
     private BL bl;
+    @OneToOne(fetch = FetchType.EAGER)
+    private Cargaison cargaison;
 
     @ManyToOne
     private Transitaire transitaire;
     @ManyToOne
     private Importateur importateur;
-
-    @OneToMany
-    private List<BonExpedition> bonExpeditions;
 }

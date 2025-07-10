@@ -38,6 +38,8 @@ public class BonExpedition {
     @Column
     private String idOperateur;
     @Column
+    private String idBonExpedition;
+    @Column
     private String observation;
     @Column
     private boolean valide;
