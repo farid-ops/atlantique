@@ -31,6 +31,10 @@ public class Utilisateur {
     private String username;
     @Column
     private String password;
+    @Column
+    private String idSite;
+    @Column
+    private String idPays;
     @CreationTimestamp
     private Date dateCreation;
     @UpdateTimestamp

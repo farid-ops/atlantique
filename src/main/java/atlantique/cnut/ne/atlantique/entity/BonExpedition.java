@@ -36,9 +36,7 @@ public class BonExpedition {
     @Column
     private String idSite;
     @Column
-    private String idOperateur;
-    @Column
-    private String idBonExpedition;
+    private String idUtilisateur;
     @Column
     private String observation;
     @Column
@@ -50,5 +48,5 @@ public class BonExpedition {
 
     //les relations
     @OneToOne
-    private ExtraBE extraBE;
+    private ExtraBe extraBE;
 }

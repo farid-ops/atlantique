@@ -16,11 +16,11 @@ import java.util.Date;
 @Setter
 @Entity
 @Table(name = "extra_be")
-public class ExtraBE {
+public class ExtraBe {
     @Id @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
     @Column
-    private String idOperateur;
+    private String idUtilisateur;
     @Column
     private String montant;
     @Column

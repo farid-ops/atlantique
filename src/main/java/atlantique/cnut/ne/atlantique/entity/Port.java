@@ -20,6 +20,10 @@ public class Port {
     @Id @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
     @Column
+    private String idPays;
+    @Column
+    private String idSite;
+    @Column
     private String designation;
     @CreationTimestamp
     private Date creationDate;
