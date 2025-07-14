@@ -1,13 +1,12 @@
-package fujitora.amiral.accountservice.security;
+package atlantique.cnut.ne.atlantique.security;
 
+import atlantique.cnut.ne.atlantique.records.RsaConfigProperties;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
-import fujitora.amiral.accountservice.records.RsaConfigProperties;
-import fujitora.amiral.accountservice.service.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -78,8 +77,8 @@ public class SecurityConfig {
                 .headers(h->h.frameOptions(fo->fo.disable()))
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
                 .oauth2ResourceServer(oauth2->{
-                    oauth2.authenticationEntryPoint(new CustomOAuth2AuthenticationEntryPoint());
-                    oauth2.accessDeniedHandler(new CustomOAuth2AccessDeniedHandler());
+                    oauth2.authenticationEntryPoint(new fujitora.amiral.accountservice.security.CustomOAuth2AuthenticationEntryPoint());
+                    oauth2.accessDeniedHandler(new fujitora.amiral.accountservice.security.CustomOAuth2AccessDeniedHandler());
                 })
                 .userDetailsService(this.userDetailsService)
                 .httpBasic(Customizer.withDefaults())

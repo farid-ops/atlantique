@@ -1,6 +1,5 @@
-package fujitora.amiral.accountservice.security;
 
-import fujitora.amiral.accountservice.utils.UtilService;
+import atlantique.cnut.ne.atlantique.util.UtilService;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
