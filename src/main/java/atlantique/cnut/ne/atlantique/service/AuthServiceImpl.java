@@ -188,29 +188,20 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public Map<String, Object> logOut(String msisdn, String accessToken) {
-        if (accessToken != null && !accessToken.isEmpty()) {
-            this.tokenBlacklistService.blacklist(accessToken);
+        String tokenKey= ACCESS_TOKEN_PREFIX.concat(msisdn);
+        String rateLimitKey= RATE_LIMIT_PREFIX.concat(msisdn);
+
+
+        String token = this.redisTemplate.opsForValue().get(tokenKey);
+        String rateLimit = this.redisTemplate.opsForValue().get(rateLimitKey);
+
+        if (token != null && rateLimit!=null){
+            this.redisTemplate.delete(tokenKey);
+            this.redisTemplate.delete(rateLimitKey);
+            return this.utilService.response(StatusCode.HTTP_LOGOUT_SUCCESS.getStatus_code(), true, StatusCode.HTTP_LOGOUT_SUCCESS.getStatus_message(), "success logout");
         }
 
-        Boolean deletedRefreshToken = redisTemplate.delete(REFRESH_TOKEN_PREFIX + msisdn);
-
-        Boolean deletedRateLimit = redisTemplate.delete(RATE_LIMIT_PREFIX + msisdn);
-
-        if (Boolean.TRUE.equals(deletedRefreshToken) || (accessToken != null && tokenBlacklistService.isTokenBlacklisted(accessToken))) {
-            return this.utilService.response(
-                    StatusCode.HTTP_LOGOUT_SUCCESS.getStatus_code(),
-                    true,
-                    StatusCode.HTTP_LOGOUT_SUCCESS.getStatus_message(),
-                    "Déconnexion réussie pour l'utilisateur: " + msisdn
-            );
-        } else {
-            return this.utilService.response(
-                    StatusCode.HTTP_FORBIDDEN.getStatus_code(),
-                    false,
-                    StatusCode.HTTP_FORBIDDEN.getStatus_message(),
-                    "Impossible de déconnecter l'utilisateur. Aucun jeton actif trouvé."
-            );
-        }
+        return this.utilService.response(StatusCode.HTTP_FORBIDDEN.getStatus_code(), false, StatusCode.HTTP_FORBIDDEN.getStatus_message(), null);
     }
 
     private boolean isRateLimited(String rateLimitKey){

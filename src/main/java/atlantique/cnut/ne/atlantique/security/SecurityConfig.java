@@ -55,8 +55,11 @@ public class SecurityConfig {
                 .sessionManagement(sm->sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth->{
 
-                    auth.requestMatchers("/swagger-ui.html","swagger-ui/**","/v3/**", "/api/v1/oauth2/token",
-                            "/api/v1/account/otp/**", "/api/v1/account/new").permitAll();
+                    // Permet l'accès public à ces chemins
+                    auth.requestMatchers("/swagger-ui.html","swagger-ui/**","/v3/**",
+                            "/api/v1/oauth2/token",
+                            "/api/v1/account/otp/**",
+                            "/api/v1/account/new").permitAll();
                     auth.anyRequest().authenticated();
                 })
                 .headers(h->h.frameOptions(fo->fo.disable()))
@@ -72,7 +75,6 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationManager authenticationManager(){
-
         var authProvider = new DaoAuthenticationProvider();
         authProvider.setPasswordEncoder(this.passwordEncoder());
         authProvider.setUserDetailsService(this.userDetailsService);
@@ -84,8 +86,8 @@ public class SecurityConfig {
     public JwtEncoder jwtEncoder(){
 
         JWK jwk = new RSAKey.Builder(this.rsaConfigProperties.publicKey()).privateKey(this.rsaConfigProperties.privateKey()).build();
-
-        JWKSource<SecurityContext> jwkSource = new ImmutableJWKSet<>(new JWKSet(jwk));
+        JWKSet jwkSet = new JWKSet(jwk);
+        JWKSource<SecurityContext> jwkSource = new ImmutableJWKSet<>(jwkSet);
 
         return new NimbusJwtEncoder(jwkSource);
     }
@@ -102,12 +104,12 @@ public class SecurityConfig {
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
-
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("*"));
         configuration.setAllowedMethods(List.of("*"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setExposedHeaders(List.of("*"));
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
 

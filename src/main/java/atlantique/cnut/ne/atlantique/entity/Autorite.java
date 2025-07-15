@@ -25,4 +25,8 @@ public class Autorite {
     private Date creationDate;
     @UpdateTimestamp
     private Date modificationDate;
+
+    public Autorite(String nom) {
+        this.nom = nom;
+    }
 }
