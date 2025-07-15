@@ -9,6 +9,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -39,4 +41,20 @@ public class Utilisateur {
     private Date dateCreation;
     @UpdateTimestamp
     private Date dateModification;
+    @Column
+    private boolean isAccountNonExpired;
+    @Column
+    private boolean isAccountNonLocked;
+    @Column
+    private boolean isCredentialsNonExpired;
+    @Column
+    private boolean isEnabled;
+
+    @ManyToMany(cascade = CascadeType.DETACH)
+    @JoinTable(
+            name = "utilisateur_authority",
+            joinColumns = @JoinColumn(name = "utilisateur_id"),
+            inverseJoinColumns = @JoinColumn(name = "authorite_id")
+    )
+    private Set<Autorite> authorites = new HashSet<>();
 }

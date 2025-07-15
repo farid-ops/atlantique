@@ -1,3 +1,4 @@
+package atlantique.cnut.ne.atlantique.security;
 
 import atlantique.cnut.ne.atlantique.util.UtilService;
 import org.springframework.data.redis.core.StringRedisTemplate;

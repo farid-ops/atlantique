@@ -1,15 +1,16 @@
 package atlantique.cnut.ne.atlantique.security;
 
 import atlantique.cnut.ne.atlantique.records.RsaConfigProperties;
+import atlantique.cnut.ne.atlantique.service.UserDetailsServiceImpl;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -35,6 +36,7 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@EnableConfigurationProperties(RsaConfigProperties.class)
 public class SecurityConfig {
 
     private final RsaConfigProperties rsaConfigProperties;
@@ -55,30 +57,13 @@ public class SecurityConfig {
 
                     auth.requestMatchers("/swagger-ui.html","swagger-ui/**","/v3/**", "/api/v1/oauth2/token",
                             "/api/v1/account/otp/**", "/api/v1/account/new").permitAll();
-
-                    auth.requestMatchers(HttpMethod.GET,  "/api/v1/account/list/**", "/api/v1/account/view/**",
-                            "/api/v1/account/receiver_type/**", "/api/v1/account/get-by-msisdn/**",
-                            "/api/v1/account/get-balance-by/**", "/api/v1/txn/filter-by-date")
-                            .hasAuthority("SCOPE_ADMIN");
-
-                    auth.requestMatchers(HttpMethod.POST,  "/api/v1/account/edit/status", "/api/v1/account/services/enadis",
-                                    "/api/v1/account/reset-agent-merchant-pin")
-                            .hasAuthority("SCOPE_ADMIN");
-
-                    auth.requestMatchers("/api/v1/transferuv/**", "/api/v1/emoney", "/api/v1/fees/**").hasAuthority("SCOPE_ADMIN");
-
-                    auth.requestMatchers(HttpMethod.PATCH,  "/api/v1/account/edit/data").hasAuthority("SCOPE_ADMIN");
-
-                    auth.requestMatchers(HttpMethod.GET,  "/api/v1/emoney/index", "/api/v1/txn/all/**",
-                            "/api/v1/txn/type/**", "/api/v1/account/receiver_type/**",
-                            "/api/v1/file/list/**", "/api/v1//file/download/**").hasAuthority("SCOPE_ADMIN");
                     auth.anyRequest().authenticated();
                 })
                 .headers(h->h.frameOptions(fo->fo.disable()))
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
                 .oauth2ResourceServer(oauth2->{
-                    oauth2.authenticationEntryPoint(new fujitora.amiral.accountservice.security.CustomOAuth2AuthenticationEntryPoint());
-                    oauth2.accessDeniedHandler(new fujitora.amiral.accountservice.security.CustomOAuth2AccessDeniedHandler());
+                    oauth2.authenticationEntryPoint(new CustomOAuth2AuthenticationEntryPoint());
+                    oauth2.accessDeniedHandler(new CustomOAuth2AccessDeniedHandler());
                 })
                 .userDetailsService(this.userDetailsService)
                 .httpBasic(Customizer.withDefaults())
