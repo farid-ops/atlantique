@@ -1,5 +1,6 @@
 package atlantique.cnut.ne.atlantique.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,7 +11,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class NatureMarchandiseDto {
+    @NotBlank(message = "La désignation ne peut pas être vide.")
     private String designation;
+    @NotBlank(message = "Le type de marchandise ne peut pas être vide.")
     private String typeMarchandise;
     private boolean active;
 }
