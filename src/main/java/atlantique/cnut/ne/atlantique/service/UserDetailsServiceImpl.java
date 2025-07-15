@@ -24,7 +24,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         Optional<Utilisateur> account = this.utilisateurRepository.findByPhone(msisdn);
 
-        if (account.isEmpty()) throw new UsernameNotFoundException("Account details not found for account key : ".concat(msisdn));
+        if (account.isEmpty()) throw new UsernameNotFoundException("Utilisateur non trouvé: ".concat(msisdn));
 
         return new UserDetailsImpl(account.get());
     }
