@@ -8,5 +8,5 @@ public interface AuthService {
 
     Map<String, Object> genToken(Oauth2DTO oauth2DTO);
 
-    Map<String, Object> logOut(String msisdn);
+    Map<String, Object> logOut(String msisdn, String accessToken);
 }
