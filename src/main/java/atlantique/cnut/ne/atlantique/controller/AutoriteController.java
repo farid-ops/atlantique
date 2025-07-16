@@ -28,7 +28,7 @@ public class AutoriteController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> createAutorite(@RequestBody @Valid AutoriteDto autoriteDto) {
         try {
             Autorite newAutorite = autoriteService.createAutorite(autoriteDto);
@@ -66,7 +66,7 @@ public class AutoriteController {
 
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'STATICIEN')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_STATICIEN')")
     public ResponseEntity<Map<String, Object>> getAllAutorites() {
         List<Autorite> autorites = autoriteService.findAllAutorites();
         return ResponseEntity.ok(
@@ -81,7 +81,7 @@ public class AutoriteController {
 
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'STATICIEN')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_STATICIEN')")
     public ResponseEntity<Map<String, Object>> getAutoriteById(@PathVariable String id) {
         return autoriteService.findAutoriteById(id)
                 .map(autorite -> ResponseEntity.ok(
@@ -96,7 +96,7 @@ public class AutoriteController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> updateAutorite(@PathVariable String id, @RequestBody @Valid AutoriteDto autoriteDto) {
         try {
             Autorite updatedAutorite = autoriteService.updateAutorite(id, autoriteDto);
@@ -134,7 +134,7 @@ public class AutoriteController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> deleteAutorite(@PathVariable String id) {
         try {
             autoriteService.deleteAutorite(id);

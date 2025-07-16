@@ -28,7 +28,7 @@ public class ArmateurController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> createArmateur(@RequestBody @Valid ArmateurDto armateurDto) {
         try {
             Armateur newArmateur = armateurService.createArmateur(armateurDto);
@@ -65,7 +65,7 @@ public class ArmateurController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'OPERATEUR', 'STATICIEN')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
     public ResponseEntity<Map<String, Object>> getAllArmateurs() {
         List<Armateur> armateurs = armateurService.findAllArmateurs();
         return ResponseEntity.ok(
@@ -79,7 +79,7 @@ public class ArmateurController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'OPERATEUR', 'STATICIEN')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
     public ResponseEntity<Map<String, Object>> getArmateurById(@PathVariable String id) {
         return armateurService.findArmateurById(id)
                 .map(armateur -> ResponseEntity.ok(
@@ -95,7 +95,7 @@ public class ArmateurController {
 
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> updateArmateur(@PathVariable String id, @RequestBody @Valid ArmateurDto armateurDto) {
         try {
             Armateur updatedArmateur = armateurService.updateArmateur(id, armateurDto);
@@ -123,7 +123,7 @@ public class ArmateurController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> deleteArmateur(@PathVariable String id) {
         try {
             armateurService.deleteArmateur(id);

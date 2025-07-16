@@ -31,7 +31,7 @@ public class PortController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> createPort(@RequestBody @Valid PortDto portDto) {
         try {
             Port newPort = portService.createPort(portDto);
@@ -68,7 +68,7 @@ public class PortController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'OPERATEUR', 'STATICIEN', 'CSITE', 'CAISSIER')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN', 'SCOPE_CSITE', 'SCOPE_CAISSIER')")
     public ResponseEntity<Map<String, Object>> getAllPorts() {
         List<Port> ports = portService.findAllPorts();
         return ResponseEntity.ok(
@@ -82,7 +82,7 @@ public class PortController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'OPERATEUR', 'STATICIEN', 'CSITE', 'CAISSIER')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN', 'SCOPE_CSITE', 'SCOPE_CAISSIER')")
     public ResponseEntity<Map<String, Object>> getPortById(@PathVariable String id) {
         return portService.findPortById(id)
                 .map(port -> ResponseEntity.ok(
@@ -97,7 +97,7 @@ public class PortController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> updatePort(@PathVariable String id, @RequestBody @Valid PortDto portDto) {
         try {
             Port updatedPort = portService.updatePort(id, portDto);
@@ -133,7 +133,7 @@ public class PortController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> deletePort(@PathVariable String id) {
         try {
             portService.deletePort(id);
@@ -161,7 +161,7 @@ public class PortController {
     }
 
     @GetMapping("/by-pays/{idPays}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'OPERATEUR', 'STATICIEN', 'CSITE', 'CAISSIER')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN', 'SCOPE_CSITE', 'SCOPE_CAISSIER')")
     public ResponseEntity<Map<String, Object>> getPortsByPaysId(@PathVariable String idPays) {
         try {
             List<Port> ports = portService.findPortsByPaysId(idPays);

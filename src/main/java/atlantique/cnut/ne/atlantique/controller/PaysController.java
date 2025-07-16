@@ -28,7 +28,7 @@ public class PaysController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> createPays(@RequestBody @Valid PaysDto paysDto) {
         try {
             Pays newPays = paysService.createPays(paysDto);
@@ -65,7 +65,7 @@ public class PaysController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'OPERATEUR', 'STATICIEN', 'CSITE', 'CAISSIER')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN', 'SCOPE_CSITE', 'SCOPE_CAISSIER')")
     public ResponseEntity<Map<String, Object>> getAllPays() {
         List<Pays> paysList = paysService.findAllPays();
         return ResponseEntity.ok(
@@ -79,7 +79,7 @@ public class PaysController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'OPERATEUR', 'STATICIEN', 'CSITE', 'CAISSIER')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN', 'SCOPE_CSITE', 'SCOPE_CAISSIER')")
     public ResponseEntity<Map<String, Object>> getPaysById(@PathVariable String id) {
         return paysService.findPaysById(id)
                 .map(pays -> ResponseEntity.ok(
@@ -94,7 +94,7 @@ public class PaysController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> updatePays(@PathVariable String id, @RequestBody @Valid PaysDto paysDto) {
         try {
             Pays updatedPays = paysService.updatePays(id, paysDto);
@@ -122,7 +122,7 @@ public class PaysController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> deletePays(@PathVariable String id) {
         try {
             paysService.deletePays(id);

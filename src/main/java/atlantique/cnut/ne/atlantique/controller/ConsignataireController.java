@@ -29,7 +29,7 @@ public class ConsignataireController {
 
 
     @PostMapping
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> createConsignataire(@RequestBody @Valid ConsignataireDto consignataireDto) {
         try {
             Consignataire newConsignataire = consignataireService.createConsignataire(consignataireDto);
@@ -66,7 +66,7 @@ public class ConsignataireController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'OPERATEUR', 'STATICIEN')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
     public ResponseEntity<Map<String, Object>> getAllConsignataires() {
         List<Consignataire> consignataires = consignataireService.findAllConsignataires();
         return ResponseEntity.ok(
@@ -80,7 +80,7 @@ public class ConsignataireController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'OPERATEUR', 'STATICIEN')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
     public ResponseEntity<Map<String, Object>> getConsignataireById(@PathVariable String id) {
         return consignataireService.findConsignataireById(id)
                 .map(consignataire -> ResponseEntity.ok(
@@ -95,7 +95,7 @@ public class ConsignataireController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> updateConsignataire(@PathVariable String id, @RequestBody @Valid ConsignataireDto consignataireDto) {
         try {
             Consignataire updatedConsignataire = consignataireService.updateConsignataire(id, consignataireDto);
@@ -124,7 +124,7 @@ public class ConsignataireController {
 
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> deleteConsignataire(@PathVariable String id) {
         try {
             consignataireService.deleteConsignataire(id);

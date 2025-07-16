@@ -29,7 +29,7 @@ public class TransitaireController {
 
 
     @PostMapping
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> createTransitaire(@RequestBody @Valid TransitaireDto transitaireDto) {
         try {
             Transitaire newTransitaire = transitaireService.createTransitaire(transitaireDto);
@@ -67,7 +67,7 @@ public class TransitaireController {
 
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'OPERATEUR', 'STATICIEN')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
     public ResponseEntity<Map<String, Object>> getAllTransitaires() {
         List<Transitaire> transitaires = transitaireService.findAllTransitaires();
         return ResponseEntity.ok(
@@ -81,7 +81,7 @@ public class TransitaireController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'OPERATEUR', 'STATICIEN')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
     public ResponseEntity<Map<String, Object>> getTransitaireById(@PathVariable String id) {
         return transitaireService.findTransitaireById(id)
                 .map(transitaire -> ResponseEntity.ok(
@@ -97,7 +97,7 @@ public class TransitaireController {
 
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> updateTransitaire(@PathVariable String id, @RequestBody @Valid TransitaireDto transitaireDto) {
         try {
             Transitaire updatedTransitaire = transitaireService.updateTransitaire(id, transitaireDto);
@@ -126,7 +126,7 @@ public class TransitaireController {
 
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> deleteTransitaire(@PathVariable String id) {
         try {
             transitaireService.deleteTransitaire(id);

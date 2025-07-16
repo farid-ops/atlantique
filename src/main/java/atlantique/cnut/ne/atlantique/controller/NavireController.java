@@ -28,7 +28,7 @@ public class NavireController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> createNavire(@RequestBody @Valid NavireDto navireDto) {
         try {
             Navire newNavire = navireService.createNavire(navireDto);
@@ -65,7 +65,7 @@ public class NavireController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'OPERATEUR', 'STATICIEN')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
     public ResponseEntity<Map<String, Object>> getAllNavires() {
         List<Navire> navires = navireService.findAllNavires();
         return ResponseEntity.ok(
@@ -79,7 +79,7 @@ public class NavireController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'OPERATEUR', 'STATICIEN')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
     public ResponseEntity<Map<String, Object>> getNavireById(@PathVariable String id) {
         return navireService.findNavireById(id)
                 .map(navire -> ResponseEntity.ok(
@@ -95,7 +95,7 @@ public class NavireController {
 
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> updateNavire(@PathVariable String id, @RequestBody @Valid NavireDto navireDto) {
         try {
             Navire updatedNavire = navireService.updateNavire(id, navireDto);
@@ -123,7 +123,7 @@ public class NavireController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> deleteNavire(@PathVariable String id) {
         try {
             navireService.deleteNavire(id);

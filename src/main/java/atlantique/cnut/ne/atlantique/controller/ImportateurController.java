@@ -29,7 +29,7 @@ public class ImportateurController {
 
 
     @PostMapping
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> createImportateur(@RequestBody @Valid ImportateurDto importateurDto) {
         try {
             Importateur newImportateur = importateurService.createImportateur(importateurDto);
@@ -67,7 +67,7 @@ public class ImportateurController {
 
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'OPERATEUR', 'STATICIEN')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
     public ResponseEntity<Map<String, Object>> getAllImportateurs() {
         List<Importateur> importateurs = importateurService.findAllImportateurs();
         return ResponseEntity.ok(
@@ -81,7 +81,7 @@ public class ImportateurController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'OPERATEUR', 'STATICIEN')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
     public ResponseEntity<Map<String, Object>> getImportateurById(@PathVariable String id) {
         return importateurService.findImportateurById(id)
                 .map(importateur -> ResponseEntity.ok(
@@ -97,7 +97,7 @@ public class ImportateurController {
 
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> updateImportateur(@PathVariable String id, @RequestBody @Valid ImportateurDto importateurDto) {
         try {
             Importateur updatedImportateur = importateurService.updateImportateur(id, importateurDto);
@@ -125,7 +125,7 @@ public class ImportateurController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> deleteImportateur(@PathVariable String id) {
         try {
             importateurService.deleteImportateur(id);
