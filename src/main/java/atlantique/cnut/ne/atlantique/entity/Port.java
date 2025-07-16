@@ -22,8 +22,6 @@ public class Port {
     @Column
     private String idPays;
     @Column
-    private String idSite;
-    @Column
     private String designation;
     @CreationTimestamp
     private Date creationDate;

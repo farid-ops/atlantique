@@ -21,6 +21,8 @@ public class Pays {
     private String id;
     @Column
     private String designation;
+    @Column
+    private String continent;
     @CreationTimestamp
     private Date creationDate;
     @UpdateTimestamp
