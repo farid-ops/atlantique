@@ -13,7 +13,6 @@ import lombok.Setter;
 public class NatureMarchandiseDto {
     @NotBlank(message = "La désignation ne peut pas être vide.")
     private String designation;
-    @NotBlank(message = "Le type de marchandise ne peut pas être vide.")
-    private String typeMarchandise;
-    private boolean active;
+    @NotBlank(message = "Le type de code de la nature marchandise ne peut pas être vide.")
+    private String codeNatureMarchandise;
 }

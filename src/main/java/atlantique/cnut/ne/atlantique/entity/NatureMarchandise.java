@@ -22,9 +22,7 @@ public class NatureMarchandise {
     @Column
     private String designation;
     @Column
-    private String typeMarchandise;
-    @Column
-    private boolean active;
+    private String codeNatureMarchandise;
     @CreationTimestamp
     private Date creationDate;
     @UpdateTimestamp
