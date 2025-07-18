@@ -6,6 +6,8 @@ import atlantique.cnut.ne.atlantique.entity.Utilisateur;
 import atlantique.cnut.ne.atlantique.exceptions.ResourceNotFoundException;
 import atlantique.cnut.ne.atlantique.repository.AutoriteRepository;
 import atlantique.cnut.ne.atlantique.repository.UtilisateurRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,6 +75,11 @@ public class UtilisateurServiceImpl implements UtilisateurService {
     @Override
     public List<Utilisateur> findAllUtilisateurs() {
         return utilisateurRepository.findAll();
+    }
+
+    @Override
+    public Page<Utilisateur> findAllUtilisateursPaginated(Pageable pageable) {
+        return utilisateurRepository.findAll(pageable);
     }
 
     @Override

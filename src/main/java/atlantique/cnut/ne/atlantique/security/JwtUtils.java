@@ -1,5 +1,6 @@
 package atlantique.cnut.ne.atlantique.security;
 
+import atlantique.cnut.ne.atlantique.entity.Utilisateur;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
@@ -20,22 +21,31 @@ public class JwtUtils {
     }
 
 
-    public String generateToken(String subject, Collection<? extends GrantedAuthority> authorities, long expirationSeconds, String tokenType) {
+    public String generateToken(Utilisateur utilisateur, Collection<? extends GrantedAuthority> authorities, long expirationSeconds, String tokenType) {
         Instant now = Instant.now();
         String scope = authorities.stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(" "));
 
-        JwtClaimsSet claims = JwtClaimsSet.builder()
+        JwtClaimsSet.Builder claimsBuilder = JwtClaimsSet.builder()
                 .issuer("auth-service")
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(expirationSeconds))
-                .subject(subject)
+                .subject(utilisateur.getId())
                 .claim("scope", scope)
-                .claim("type", tokenType)
-                .build();
+                .claim("type", tokenType);
 
-        return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+        // Ajout des informations spécifiques de l'entité Utilisateur comme claims
+        claimsBuilder.claim("id", utilisateur.getId());
+        claimsBuilder.claim("nom", utilisateur.getNom());
+        claimsBuilder.claim("prenom", utilisateur.getPrenom());
+        claimsBuilder.claim("email", utilisateur.getEmail());
+        claimsBuilder.claim("phone", utilisateur.getPhone());
+        claimsBuilder.claim("phone", utilisateur.getPhone());
+//        claimsBuilder.claim("idSite", utilisateur.getIdSite());
+//        claimsBuilder.claim("idPays", utilisateur.getIdPays());
+
+        return jwtEncoder.encode(JwtEncoderParameters.from(claimsBuilder.build())).getTokenValue();
     }
 
 

@@ -6,6 +6,8 @@ import atlantique.cnut.ne.atlantique.exceptions.ResourceNotFoundException;
 import atlantique.cnut.ne.atlantique.exceptions.StatusCode;
 import atlantique.cnut.ne.atlantique.service.UtilisateurService;
 import atlantique.cnut.ne.atlantique.util.UtilService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -66,14 +68,14 @@ public class UtilisateurController {
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
-    public ResponseEntity<Map<String, Object>> getAllUtilisateurs() {
-        List<Utilisateur> utilisateurs = utilisateurService.findAllUtilisateurs();
+    public ResponseEntity<Map<String, Object>> getAllUtilisateurs(Pageable pageable) {
+        Page<Utilisateur> utilisateurPage = utilisateurService.findAllUtilisateursPaginated(pageable);
         return ResponseEntity.ok(
                 utilService.response(
                         StatusCode.HTTP_UTILISATEUR_RETRIEVED.getStatus_code(),
                         true,
                         StatusCode.HTTP_UTILISATEUR_RETRIEVED.getStatus_message(),
-                        utilisateurs
+                        utilisateurPage
                 )
         );
     }

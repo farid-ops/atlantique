@@ -2,6 +2,7 @@ package atlantique.cnut.ne.atlantique.service;
 
 import atlantique.cnut.ne.atlantique.dto.Oauth2DTO;
 import atlantique.cnut.ne.atlantique.entity.Utilisateur;
+import atlantique.cnut.ne.atlantique.exceptions.ResourceNotFoundException;
 import atlantique.cnut.ne.atlantique.exceptions.StatusCode;
 import atlantique.cnut.ne.atlantique.security.JwtUtils;
 import atlantique.cnut.ne.atlantique.util.UtilService;
@@ -20,7 +21,6 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -60,36 +60,38 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public Map<String, Object> genToken(Oauth2DTO oauth2DTO) {
 
-        String msisdn = oauth2DTO.getMsisdn();
+        String msisdn = oauth2DTO.getMsisdn(); // Utilisez msisdn directement
         String rateLimitKey = RATE_LIMIT_PREFIX.concat(msisdn);
 
-        if (!this.isRateLimited(rateLimitKey)) {
-            return this.utilService.response(
-                    StatusCode.HTTP_RATE_LIMIT_EXCEEDED.getStatus_code(),
-                    false,
-                    StatusCode.HTTP_RATE_LIMIT_EXCEEDED.getStatus_message(),
-                    null
-            );
-        }
+//        if (!this.isRateLimited(rateLimitKey)) {
+//            return this.utilService.response(
+//                    StatusCode.HTTP_RATE_LIMIT_EXCEEDED.getStatus_code(),
+//                    false,
+//                    StatusCode.HTTP_RATE_LIMIT_EXCEEDED.getStatus_message(),
+//                    null
+//            );
+//        }
 
         Instant now = Instant.now();
         String accessToken = null;
         String refreshToken = null;
         Collection<? extends GrantedAuthority> authorities;
-        String subject;
+        Utilisateur currentUtilisateur;
 
         if ("password".equalsIgnoreCase(oauth2DTO.getGrantType())) {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(msisdn, oauth2DTO.getPassword())
             );
-            subject = authentication.getName();
+            currentUtilisateur = utilisateurService.findByPhone(authentication.getName())
+                    .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé après authentification."));
+
             authorities = authentication.getAuthorities();
 
-            accessToken = this.jwtUtils.generateToken(subject, authorities, ACCESS_TOKEN_EXPIRATION_SECONDS, "access");
+            accessToken = jwtUtils.generateToken(currentUtilisateur, authorities, ACCESS_TOKEN_EXPIRATION_SECONDS, "access");
 
             if (oauth2DTO.isWithRefreshToken()) {
-                refreshToken = this.jwtUtils.generateToken(subject, authorities, REFRESH_TOKEN_EXPIRATION_SECONDS, "refresh");
-                redisTemplate.opsForValue().set(REFRESH_TOKEN_PREFIX + subject, refreshToken, Duration.ofSeconds(REFRESH_TOKEN_EXPIRATION_SECONDS));
+                refreshToken = jwtUtils.generateToken(currentUtilisateur, authorities, REFRESH_TOKEN_EXPIRATION_SECONDS, "refresh");
+                redisTemplate.opsForValue().set(REFRESH_TOKEN_PREFIX + currentUtilisateur.getId(), refreshToken, Duration.ofSeconds(REFRESH_TOKEN_EXPIRATION_SECONDS));
             }
 
         } else if ("refreshToken".equalsIgnoreCase(oauth2DTO.getGrantType())) {
@@ -105,19 +107,19 @@ public class AuthServiceImpl implements AuthService {
 
             try {
                 Jwt decodedRefreshToken = jwtDecoder.decode(providedRefreshToken);
-                subject = decodedRefreshToken.getSubject();
+                String userIdFromToken = decodedRefreshToken.getClaimAsString("userId");
                 String tokenType = decodedRefreshToken.getClaimAsString("type");
 
-                if (!"refresh".equals(tokenType)) {
+                if (!"refresh".equals(tokenType) || userIdFromToken == null) {
                     return this.utilService.response(
                             StatusCode.HTTP_UNAUTHORIZED.getStatus_code(),
                             false,
                             StatusCode.HTTP_UNAUTHORIZED.getStatus_message(),
-                            "Type de jeton de rafraîchissement invalide."
+                            "Type de jeton de rafraîchissement invalide ou ID utilisateur manquant."
                     );
                 }
 
-                String storedRefreshToken = redisTemplate.opsForValue().get(REFRESH_TOKEN_PREFIX + subject);
+                String storedRefreshToken = redisTemplate.opsForValue().get(REFRESH_TOKEN_PREFIX + userIdFromToken);
 
                 if (storedRefreshToken == null || !storedRefreshToken.equals(providedRefreshToken)) {
                     return this.utilService.response(
@@ -128,29 +130,22 @@ public class AuthServiceImpl implements AuthService {
                     );
                 }
 
-                Optional<Utilisateur> utilisateurOptional = this.utilisateurService.findByPhone(subject);
-                if (utilisateurOptional.isEmpty()) {
-                    return this.utilService.response(
-                            StatusCode.HTTP_UNAUTHORIZED.getStatus_code(),
-                            false,
-                            StatusCode.HTTP_UNAUTHORIZED.getStatus_message(),
-                            "Utilisateur non trouvé pour le jeton de rafraîchissement."
-                    );
-                }
-                authorities = utilisateurOptional.get().getAuthorites().stream()
+                currentUtilisateur = utilisateurService.findUtilisateurById(userIdFromToken)
+                        .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé pour le jeton de rafraîchissement."));
+
+                authorities = currentUtilisateur.getAuthorites().stream()
                         .map(authority -> new SimpleGrantedAuthority(authority.getNom().toUpperCase()))
                         .collect(Collectors.toList());
 
-                accessToken = jwtUtils.generateToken(subject, authorities, ACCESS_TOKEN_EXPIRATION_SECONDS, "access");
+                accessToken = jwtUtils.generateToken(currentUtilisateur, authorities, ACCESS_TOKEN_EXPIRATION_SECONDS, "access");
 
                 if (oauth2DTO.isWithRefreshToken()) {
-                    redisTemplate.delete(REFRESH_TOKEN_PREFIX + subject);
-                    refreshToken = jwtUtils.generateToken(subject, authorities, REFRESH_TOKEN_EXPIRATION_SECONDS, "refresh");
-                    redisTemplate.opsForValue().set(REFRESH_TOKEN_PREFIX + subject, refreshToken, Duration.ofSeconds(REFRESH_TOKEN_EXPIRATION_SECONDS));
+                    redisTemplate.delete(REFRESH_TOKEN_PREFIX + currentUtilisateur.getId());
+                    refreshToken = jwtUtils.generateToken(currentUtilisateur, authorities, REFRESH_TOKEN_EXPIRATION_SECONDS, "refresh");
+                    redisTemplate.opsForValue().set(REFRESH_TOKEN_PREFIX + currentUtilisateur.getId(), refreshToken, Duration.ofSeconds(REFRESH_TOKEN_EXPIRATION_SECONDS));
                 } else {
-                    refreshToken = providedRefreshToken;
+                    refreshToken = null;
                 }
-
 
             } catch (Exception e) {
                 return this.utilService.response(
