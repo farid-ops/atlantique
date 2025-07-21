@@ -4,6 +4,8 @@ import atlantique.cnut.ne.atlantique.dto.NatureMarchandiseDto;
 import atlantique.cnut.ne.atlantique.entity.NatureMarchandise;
 import atlantique.cnut.ne.atlantique.exceptions.ResourceNotFoundException;
 import atlantique.cnut.ne.atlantique.repository.NatureMarchandiseRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +38,11 @@ public class NatureMarchandiseServiceImpl implements NatureMarchandiseService {
     @Override
     public List<NatureMarchandise> findAllNatureMarchandises() {
         return natureMarchandiseRepository.findAll();
+    }
+
+    @Override
+    public Page<NatureMarchandise> findAllNatureMarchandisesPaginated(Pageable pageable) {
+        return natureMarchandiseRepository.findAll(pageable);
     }
 
     @Override

@@ -4,6 +4,8 @@ import atlantique.cnut.ne.atlantique.dto.TransitaireDto;
 import atlantique.cnut.ne.atlantique.entity.Transitaire;
 import atlantique.cnut.ne.atlantique.exceptions.ResourceNotFoundException;
 import atlantique.cnut.ne.atlantique.repository.TransitaireRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +38,11 @@ public class TransitaireServiceImpl implements TransitaireService {
     @Override
     public List<Transitaire> findAllTransitaires() {
         return transitaireRepository.findAll();
+    }
+
+    @Override
+    public Page<Transitaire> findAllTransitairesPaginated(Pageable pageable) {
+        return transitaireRepository.findAll(pageable);
     }
 
     @Override

@@ -6,6 +6,8 @@ import atlantique.cnut.ne.atlantique.exceptions.ResourceNotFoundException;
 import atlantique.cnut.ne.atlantique.exceptions.StatusCode;
 import atlantique.cnut.ne.atlantique.service.TransitaireService;
 import atlantique.cnut.ne.atlantique.util.UtilService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -68,14 +70,14 @@ public class TransitaireController {
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
-    public ResponseEntity<Map<String, Object>> getAllTransitaires() {
-        List<Transitaire> transitaires = transitaireService.findAllTransitaires();
+    public ResponseEntity<Map<String, Object>> getAllTransitaires(Pageable pageable) {
+        Page<Transitaire> transitairePage = transitaireService.findAllTransitairesPaginated(pageable);
         return ResponseEntity.ok(
                 utilService.response(
                         StatusCode.HTTP_TRANSITAIRE_RETRIEVED.getStatus_code(),
                         true,
                         StatusCode.HTTP_TRANSITAIRE_RETRIEVED.getStatus_message(),
-                        transitaires
+                        transitairePage
                 )
         );
     }

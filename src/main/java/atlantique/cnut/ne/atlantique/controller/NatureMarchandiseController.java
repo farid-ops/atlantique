@@ -6,6 +6,8 @@ import atlantique.cnut.ne.atlantique.exceptions.ResourceNotFoundException;
 import atlantique.cnut.ne.atlantique.exceptions.StatusCode;
 import atlantique.cnut.ne.atlantique.service.NatureMarchandiseService;
 import atlantique.cnut.ne.atlantique.util.UtilService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -66,14 +68,14 @@ public class NatureMarchandiseController {
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
-    public ResponseEntity<Map<String, Object>> getAllNatureMarchandises() {
-        List<NatureMarchandise> natureMarchandises = natureMarchandiseService.findAllNatureMarchandises();
+    public ResponseEntity<Map<String, Object>> getAllNatureMarchandises(Pageable pageable) {
+        Page<NatureMarchandise> natureMarchandisePage = natureMarchandiseService.findAllNatureMarchandisesPaginated(pageable);
         return ResponseEntity.ok(
                 utilService.response(
                         StatusCode.HTTP_NATUREMARCHANDISE_RETRIEVED.getStatus_code(),
                         true,
                         StatusCode.HTTP_NATUREMARCHANDISE_RETRIEVED.getStatus_message(),
-                        natureMarchandises
+                        natureMarchandisePage
                 )
         );
     }

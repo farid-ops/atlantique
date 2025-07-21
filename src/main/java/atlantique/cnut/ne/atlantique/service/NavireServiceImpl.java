@@ -4,6 +4,8 @@ import atlantique.cnut.ne.atlantique.dto.NavireDto;
 import atlantique.cnut.ne.atlantique.entity.Navire;
 import atlantique.cnut.ne.atlantique.exceptions.ResourceNotFoundException;
 import atlantique.cnut.ne.atlantique.repository.NavireRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +38,11 @@ public class NavireServiceImpl implements NavireService {
     @Override
     public List<Navire> findAllNavires() {
         return navireRepository.findAll();
+    }
+
+    @Override
+    public Page<Navire> findAllNaviresPaginated(Pageable pageable) {
+        return navireRepository.findAll(pageable);
     }
 
     @Override

@@ -6,6 +6,8 @@ import atlantique.cnut.ne.atlantique.exceptions.ResourceNotFoundException;
 import atlantique.cnut.ne.atlantique.exceptions.StatusCode;
 import atlantique.cnut.ne.atlantique.service.NavireService;
 import atlantique.cnut.ne.atlantique.util.UtilService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -66,17 +68,18 @@ public class NavireController {
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
-    public ResponseEntity<Map<String, Object>> getAllNavires() {
-        List<Navire> navires = navireService.findAllNavires();
+    public ResponseEntity<Map<String, Object>> getAllNavires(Pageable pageable) {
+        Page<Navire> navirePage = navireService.findAllNaviresPaginated(pageable);
         return ResponseEntity.ok(
                 utilService.response(
                         StatusCode.HTTP_NAVIRE_RETRIEVED.getStatus_code(),
                         true,
                         StatusCode.HTTP_NAVIRE_RETRIEVED.getStatus_message(),
-                        navires
+                        navirePage // Retournez l'objet Page
                 )
         );
     }
+
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
