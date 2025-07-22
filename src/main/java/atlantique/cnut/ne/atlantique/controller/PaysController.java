@@ -6,6 +6,8 @@ import atlantique.cnut.ne.atlantique.exceptions.ResourceNotFoundException;
 import atlantique.cnut.ne.atlantique.exceptions.StatusCode;
 import atlantique.cnut.ne.atlantique.service.PaysService;
 import atlantique.cnut.ne.atlantique.util.UtilService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -74,6 +76,20 @@ public class PaysController {
                         true,
                         StatusCode.HTTP_PAYS_RETRIEVED.getStatus_message(),
                         paysList
+                )
+        );
+    }
+
+    @GetMapping("/paginated")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN', 'SCOPE_CSITE', 'SCOPE_CAISSIER')")
+    public ResponseEntity<Map<String, Object>> getAllPaysPaginated(Pageable pageable) {
+        Page<Pays> paysPage = paysService.findAllPaysPaginated(pageable);
+        return ResponseEntity.ok(
+                utilService.response(
+                        StatusCode.HTTP_PAYS_RETRIEVED.getStatus_code(),
+                        true,
+                        StatusCode.HTTP_PAYS_RETRIEVED.getStatus_message(),
+                        paysPage
                 )
         );
     }

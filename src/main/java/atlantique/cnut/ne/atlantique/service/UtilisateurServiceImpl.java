@@ -35,12 +35,12 @@ public class UtilisateurServiceImpl implements UtilisateurService {
 
     @Override
     public Optional<Utilisateur> findByPhone(String phone) {
-        return this.utilisateurRepository.findByPhone(phone);
+        return this.utilisateurRepository.findByTelephone(phone);
     }
 
     @Override
     public Utilisateur createUtilisateur(UtilisateurDto utilisateurDto) {
-        if (utilisateurRepository.findByPhone(utilisateurDto.getTelephone()).isPresent()) {
+        if (utilisateurRepository.findByTelephone(utilisateurDto.getTelephone()).isPresent()) {
             throw new IllegalArgumentException("Un utilisateur avec ce numéro de téléphone existe déjà.");
         }
 
@@ -48,7 +48,7 @@ public class UtilisateurServiceImpl implements UtilisateurService {
         utilisateur.setNom(utilisateurDto.getNom());
         utilisateur.setPrenom(utilisateurDto.getPrenom());
         utilisateur.setEmail(utilisateurDto.getEmail());
-        utilisateur.setPhone(utilisateurDto.getTelephone());
+        utilisateur.setTelephone(utilisateurDto.getTelephone());
         utilisateur.setAdresse(utilisateurDto.getAdresse());
         utilisateur.setIdSite(utilisateurDto.getIdSite());
         utilisateur.setIdPays(utilisateurDto.getIdPays());
@@ -94,7 +94,7 @@ public class UtilisateurServiceImpl implements UtilisateurService {
                     existingUtilisateur.setNom(utilisateurDto.getNom());
                     existingUtilisateur.setPrenom(utilisateurDto.getPrenom());
                     existingUtilisateur.setEmail(utilisateurDto.getEmail());
-                    existingUtilisateur.setPhone(utilisateurDto.getTelephone());
+                    existingUtilisateur.setTelephone(utilisateurDto.getTelephone());
                     existingUtilisateur.setAdresse(utilisateurDto.getAdresse());
                     existingUtilisateur.setIdSite(utilisateurDto.getIdSite());
                     existingUtilisateur.setIdPays(utilisateurDto.getIdPays());

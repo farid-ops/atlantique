@@ -40,10 +40,9 @@ public class JwtUtils {
         claimsBuilder.claim("nom", utilisateur.getNom());
         claimsBuilder.claim("prenom", utilisateur.getPrenom());
         claimsBuilder.claim("email", utilisateur.getEmail());
-        claimsBuilder.claim("phone", utilisateur.getPhone());
-        claimsBuilder.claim("phone", utilisateur.getPhone());
-//        claimsBuilder.claim("idSite", utilisateur.getIdSite());
-//        claimsBuilder.claim("idPays", utilisateur.getIdPays());
+        claimsBuilder.claim("phone", utilisateur.getTelephone());
+        claimsBuilder.claim("idSite", utilisateur.getIdSite());
+        claimsBuilder.claim("idPays", utilisateur.getIdPays());
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claimsBuilder.build())).getTokenValue();
     }

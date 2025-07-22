@@ -4,6 +4,8 @@ import atlantique.cnut.ne.atlantique.dto.PortDto;
 import atlantique.cnut.ne.atlantique.entity.Port;
 import atlantique.cnut.ne.atlantique.exceptions.ResourceNotFoundException;
 import atlantique.cnut.ne.atlantique.repository.PortRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,5 +74,13 @@ public class PortServiceImpl implements PortService {
             throw new ResourceNotFoundException("Pays non trouvé avec l'ID: " + idPays);
         }
         return portRepository.findByIdPays(idPays);
+    }
+
+    @Override
+    public Page<Port> findAllPortsPaginated(Pageable pageable, String idPays) {
+        if (idPays != null && !idPays.isEmpty()) {
+            return portRepository.findByIdPays(idPays, pageable);
+        }
+        return portRepository.findAll(pageable);
     }
 }

@@ -30,7 +30,7 @@ public class Utilisateur {
     @Column
     private String email;
     @Column
-    private String phone;
+    private String telephone;
     @Column
     private String password;
     @Column

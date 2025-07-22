@@ -7,6 +7,8 @@ import atlantique.cnut.ne.atlantique.exceptions.StatusCode;
 import atlantique.cnut.ne.atlantique.service.PortService;
 import atlantique.cnut.ne.atlantique.service.PaysService;
 import atlantique.cnut.ne.atlantique.util.UtilService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -77,6 +79,22 @@ public class PortController {
                         true,
                         StatusCode.HTTP_PORT_RETRIEVED.getStatus_message(),
                         ports
+                )
+        );
+    }
+
+    @GetMapping("/paginated")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN', 'SCOPE_CSITE', 'SCOPE_CAISSIER')")
+    public ResponseEntity<Map<String, Object>> getAllPorts(
+            Pageable pageable,
+            @RequestParam(required = false) String idPays) {
+        Page<Port> portPage = portService.findAllPortsPaginated(pageable, idPays);
+        return ResponseEntity.ok(
+                utilService.response(
+                        StatusCode.HTTP_PORT_RETRIEVED.getStatus_code(),
+                        true,
+                        StatusCode.HTTP_PORT_RETRIEVED.getStatus_message(),
+                        portPage
                 )
         );
     }

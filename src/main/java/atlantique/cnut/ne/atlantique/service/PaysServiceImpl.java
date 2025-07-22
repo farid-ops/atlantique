@@ -4,6 +4,8 @@ import atlantique.cnut.ne.atlantique.dto.PaysDto;
 import atlantique.cnut.ne.atlantique.entity.Pays;
 import atlantique.cnut.ne.atlantique.exceptions.ResourceNotFoundException;
 import atlantique.cnut.ne.atlantique.repository.PaysRepository; // Importez le repository
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +37,11 @@ public class PaysServiceImpl implements PaysService {
     @Override
     public List<Pays> findAllPays() {
         return paysRepository.findAll();
+    }
+
+    @Override
+    public Page<Pays> findAllPaysPaginated(Pageable pageable) {
+        return paysRepository.findAll(pageable);
     }
 
     @Override

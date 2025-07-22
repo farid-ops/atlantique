@@ -22,7 +22,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String msisdn) throws UsernameNotFoundException {
 
-        Optional<Utilisateur> account = this.utilisateurRepository.findByPhone(msisdn);
+        Optional<Utilisateur> account = this.utilisateurRepository.findByTelephone(msisdn);
 
         if (account.isEmpty()) throw new UsernameNotFoundException("Utilisateur non trouvé: ".concat(msisdn));
 
