@@ -9,7 +9,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.util.Date;
-import java.util.Set;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -32,8 +31,4 @@ public class Importateur {
     private Date creationDate;
     @UpdateTimestamp
     private Date modificationDate;
-
-    //les relations
-    @OneToMany
-    private Set<Marchandise> marchandises;
 }

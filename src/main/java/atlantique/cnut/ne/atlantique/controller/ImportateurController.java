@@ -6,6 +6,8 @@ import atlantique.cnut.ne.atlantique.exceptions.ResourceNotFoundException;
 import atlantique.cnut.ne.atlantique.exceptions.StatusCode;
 import atlantique.cnut.ne.atlantique.service.ImportateurService;
 import atlantique.cnut.ne.atlantique.util.UtilService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -65,7 +67,6 @@ public class ImportateurController {
         }
     }
 
-
     @GetMapping
     @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
     public ResponseEntity<Map<String, Object>> getAllImportateurs() {
@@ -76,6 +77,20 @@ public class ImportateurController {
                         true,
                         StatusCode.HTTP_IMPORTATEUR_RETRIEVED.getStatus_message(),
                         importateurs
+                )
+        );
+    }
+
+    @GetMapping("/paginated")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
+    public ResponseEntity<Map<String, Object>> findAllImportateursPaginated(Pageable pageable) {
+        Page<Importateur> importateurPage = importateurService.findAllImportateursPaginated(pageable);
+        return ResponseEntity.ok(
+                utilService.response(
+                        StatusCode.HTTP_IMPORTATEUR_RETRIEVED.getStatus_code(),
+                        true,
+                        StatusCode.HTTP_IMPORTATEUR_RETRIEVED.getStatus_message(),
+                        importateurPage
                 )
         );
     }

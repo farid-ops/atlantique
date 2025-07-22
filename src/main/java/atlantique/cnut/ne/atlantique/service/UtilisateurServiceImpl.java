@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -55,19 +56,26 @@ public class UtilisateurServiceImpl implements UtilisateurService {
 
         utilisateur.setPassword(passwordEncoder.encode(utilisateurDto.getPassword()));
 
-        Set<Autorite> defaultAuthorities = new HashSet<>();
-        autoriteRepository.findByNom("OPERATEUR").ifPresentOrElse(
-                defaultAuthorities::add,
-                () -> {
-                    throw new ResourceNotFoundException("Le rôle 'OPERATEUR' par défaut n'a pas été trouvé dans la base de données.");
-                }
-        );
-        utilisateur.setAuthorites(defaultAuthorities);
+        Set<Autorite> assignedAuthorities = new HashSet<>();
+        if (utilisateurDto.getAutoriteIds() != null && !utilisateurDto.getAutoriteIds().isEmpty()) {
+            assignedAuthorities = utilisateurDto.getAutoriteIds().stream()
+                    .map(autoriteId -> autoriteRepository.findById(autoriteId)
+                            .orElseThrow(() -> new ResourceNotFoundException("Autorité non trouvée avec l'ID: " + autoriteId)))
+                    .collect(Collectors.toSet());
+        } else {
+            autoriteRepository.findByNom("OPERATEUR").ifPresentOrElse(
+                    assignedAuthorities::add,
+                    () -> {
+                        throw new ResourceNotFoundException("Le rôle 'OPERATEUR' par défaut n'a pas été trouvé dans la base de données.");
+                    }
+            );
+        }
+        utilisateur.setAuthorites(assignedAuthorities);
 
         utilisateur.setAccountNonExpired(true);
         utilisateur.setAccountNonLocked(true);
         utilisateur.setCredentialsNonExpired(true);
-        utilisateur.setEnabled(true);
+        utilisateur.setEnabled(utilisateurDto.getEnabled() != null ? utilisateurDto.getEnabled() : true);
 
         return utilisateurRepository.save(utilisateur);
     }
@@ -101,6 +109,18 @@ public class UtilisateurServiceImpl implements UtilisateurService {
 
                     if (utilisateurDto.getPassword() != null && !utilisateurDto.getPassword().isEmpty()) {
                         existingUtilisateur.setPassword(passwordEncoder.encode(utilisateurDto.getPassword()));
+                    }
+
+                    if (utilisateurDto.getAutoriteIds() != null) {
+                        Set<Autorite> updatedAuthorities = utilisateurDto.getAutoriteIds().stream()
+                                .map(autoriteId -> autoriteRepository.findById(autoriteId)
+                                        .orElseThrow(() -> new ResourceNotFoundException("Autorité non trouvée avec l'ID: " + autoriteId)))
+                                .collect(Collectors.toSet());
+                        existingUtilisateur.setAuthorites(updatedAuthorities);
+                    }
+
+                    if (utilisateurDto.getEnabled() != null) {
+                        existingUtilisateur.setEnabled(utilisateurDto.getEnabled());
                     }
 
                     return utilisateurRepository.save(existingUtilisateur);

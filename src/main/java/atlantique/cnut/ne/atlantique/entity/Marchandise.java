@@ -24,7 +24,7 @@ public class Marchandise {
     @Column
     private String poids;
     @Column
-    private String type; //import, export
+    private String type;
     @Column
     private String nombreColis;
     @Column
@@ -40,7 +40,7 @@ public class Marchandise {
     @Column
     private boolean conteneur;
     @Column
-    private String typeConteneur; //pieds(10, 20, 30)
+    private String typeConteneur;
     @Column
     private String volume;
     @Column
@@ -79,14 +79,8 @@ public class Marchandise {
     private Date creationDate;
     @UpdateTimestamp
     private Date modificationDate;
-
-    @OneToOne(fetch = FetchType.EAGER)
-    private BL bl;
-    @OneToOne(fetch = FetchType.EAGER)
-    private Cargaison cargaison;
-
-    @ManyToOne
-    private Transitaire transitaire;
-    @ManyToOne
-    private Importateur importateur;
+    @Column
+    private String idTransitaire;
+    @Column
+    private String idImportateur;
 }

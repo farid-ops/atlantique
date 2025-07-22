@@ -4,6 +4,8 @@ import atlantique.cnut.ne.atlantique.dto.ImportateurDto;
 import atlantique.cnut.ne.atlantique.entity.Importateur;
 import atlantique.cnut.ne.atlantique.exceptions.ResourceNotFoundException;
 import atlantique.cnut.ne.atlantique.repository.ImportateurRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +40,11 @@ public class ImportateurServiceImpl implements ImportateurService {
     @Override
     public List<Importateur> findAllImportateurs() {
         return importateurRepository.findAll();
+    }
+
+    @Override
+    public Page<Importateur> findAllImportateursPaginated(Pageable pageable) {
+        return importateurRepository.findAll(pageable);
     }
 
     @Override

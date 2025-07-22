@@ -9,6 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Set;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -32,4 +34,6 @@ public class UtilisateurDto {
     private String idSite;
     @NotBlank(message = "L'ID du pays ne peut pas être vide.")
     private String idPays;
+    private Set<String> autoriteIds;
+    private Boolean enabled;
 }
