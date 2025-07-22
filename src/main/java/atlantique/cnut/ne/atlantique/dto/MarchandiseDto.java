@@ -29,11 +29,12 @@ public class MarchandiseDto {
     @NotBlank(message = "Le nombre de conteneurs ne peut pas être vide.")
     @Pattern(regexp = "\\d+", message = "Le nombre de conteneurs doit être un nombre.")
     private String nombreConteneur;
-    private boolean regularisation;
-    private boolean conteneur;
-    private boolean exoneration;
+
+    private Boolean regularisation;
+    private Boolean exoneration;
+    private Boolean conteneur;
+
     private String typeConteneur;
-    @NotBlank(message = "Le volume ne peut pas être vide.")
     private String volume;
     private String observation;
     @NotBlank(message = "Le numéro de voyage ne peut pas être vide.")
@@ -56,5 +57,10 @@ public class MarchandiseDto {
     @NotBlank(message = "L'ID de la nature de la marchandise ne peut pas être vide.")
     private String idNatureMarchandise;
     @NotBlank(message = "L'ID de l'armateur ne peut pas être vide.")
-    private String idArmature;
+    private String idArmateur;
+    private String idTransitaire;
+    private String idImportateur;
+
+    private String idBl;
+    private String idCargaison;
 }
