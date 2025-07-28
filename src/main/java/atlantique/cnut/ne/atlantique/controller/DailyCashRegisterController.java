@@ -37,7 +37,7 @@ public class DailyCashRegisterController {
             throw new IllegalStateException("Aucun utilisateur authentifié.");
         }
         String username = authentication.getName();
-        return utilisateurService.findByPhone(username)
+        return utilisateurService.findUtilisateurById(username)
                 .map(Utilisateur::getId)
                 .orElseThrow(() -> new ResourceNotFoundException("Utilisateur authentifié non trouvé."));
     }
@@ -48,7 +48,7 @@ public class DailyCashRegisterController {
             throw new IllegalStateException("Aucun utilisateur authentifié.");
         }
         String username = authentication.getName();
-        return utilisateurService.findByPhone(username)
+        return utilisateurService.findUtilisateurById(username)
                 .map(Utilisateur::getIdSite)
                 .orElseThrow(() -> new ResourceNotFoundException("Utilisateur authentifié non trouvé ou n'a pas d'ID de site."));
     }
@@ -207,18 +207,20 @@ public class DailyCashRegisterController {
     }
 
 
-    @GetMapping("/site-summaries/{date}")
+    @GetMapping("/site-summaries") // Changement de l'URL pour ne pas avoir de date en path variable unique
     @PreAuthorize("hasAuthority('SCOPE_CSITE')")
-    public ResponseEntity<Map<String, Object>> getSiteCashiersSummariesByDate(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+    public ResponseEntity<Map<String, Object>> getSiteCashiersSummariesByDate(
+            @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         try {
             String siteId = getCurrentUserSiteId();
-            List<DailyCashRegisterDto> summaries = dailyCashRegisterService.getDailySummariesForSite(siteId, date);
+            List<DailyCashRegisterDto> summaries = dailyCashRegisterService.getDailySummariesForSite(siteId, startDate, endDate); // Appel avec deux dates
             if (summaries.isEmpty()) {
                 return new ResponseEntity<>(
                         utilService.response(
                                 StatusCode.HTTP_NOT_FOUND.getStatus_code(),
                                 false,
-                                "Aucun résumé de caisse trouvé pour le site " + siteId + " à la date " + date + ".",
+                                "Aucun résumé de caisse trouvé pour le site " + siteId + " entre le " + startDate + " et le " + endDate + ".",
                                 null
                         ),
                         HttpStatus.NOT_FOUND
@@ -228,7 +230,7 @@ public class DailyCashRegisterController {
                     utilService.response(
                             StatusCode.HTTP_OK.getStatus_code(),
                             true,
-                            "Résumés de caisse pour le site " + siteId + " à la date " + date + " récupérés avec succès.",
+                            "Résumés de caisse pour le site " + siteId + " entre le " + startDate + " et le " + endDate + " récupérés avec succès.",
                             summaries
                     )
             );

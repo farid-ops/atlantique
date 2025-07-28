@@ -355,6 +355,8 @@ public class MarchandiseServiceImpl implements MarchandiseService {
         // existingMarchandise.setVisa(marchandiseDto.getVisa()); // Managed by calculations
         // existingMarchandise.setValidation(marchandiseDto.getValidation()); // Removed, replaced by status
 
+        existingMarchandise.setStatus(marchandiseDto.getStatus());
+
         existingMarchandise.setIdNatureMarchandise(marchandiseDto.getIdNatureMarchandise());
         existingMarchandise.setIdArmateur(marchandiseDto.getIdArmateur());
         existingMarchandise.setIdTransitaire(marchandiseDto.getIdTransitaire());

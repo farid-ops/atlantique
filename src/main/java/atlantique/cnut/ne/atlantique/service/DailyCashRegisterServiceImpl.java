@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -135,22 +136,25 @@ public class DailyCashRegisterServiceImpl implements DailyCashRegisterService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<DailyCashRegisterDto> getDailySummariesForSite(String siteId, LocalDate date) {
+    public List<DailyCashRegisterDto> getDailySummariesForSite(String siteId, LocalDate startDate, LocalDate endDate) {
         List<Utilisateur> cashiers = utilisateurRepository.findAll().stream()
                 .filter(user -> user.getIdSite() != null && user.getIdSite().equals(siteId) &&
                         user.getAuthorites().stream().anyMatch(auth -> "SCOPE_CAISSIER".equals(auth.getNom())))
-                .collect(Collectors.toList());
+                .toList();
 
         if (cashiers.isEmpty()) {
             throw new ResourceNotFoundException("Aucun caissier trouvé pour le site avec l'ID: " + siteId);
         }
 
-        return cashiers.stream()
-                .map(cashier -> dailyCashRegisterRepository.findByCaissierIdAndOperationDate(cashier.getId(), date))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
+        List<DailyCashRegisterDto> allSummaries = new ArrayList<>();
+        for (Utilisateur cashier : cashiers) {
+            List<DailyCashRegister> cashierSummaries = dailyCashRegisterRepository.findByCaissierIdAndOperationDateBetween(cashier.getId(), startDate, endDate);
+            allSummaries.addAll(cashierSummaries.stream()
+                    .map(this::convertToDto)
+                    .toList());
+        }
+
+        return allSummaries;
     }
 
     @Override

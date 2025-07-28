@@ -3,7 +3,6 @@ package atlantique.cnut.ne.atlantique.service;
 import atlantique.cnut.ne.atlantique.dto.DailyCashRegisterDto;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 
 public interface DailyCashRegisterService {
 
@@ -19,7 +18,7 @@ public interface DailyCashRegisterService {
 
     DailyCashRegisterDto openCashRegister(String caissierId);
 
-    List<DailyCashRegisterDto> getDailySummariesForSite(String siteId, LocalDate date);
+    List<DailyCashRegisterDto> getDailySummariesForSite(String siteId, LocalDate startDate, LocalDate endDate);
 
     boolean isCashRegisterOpen(String caissierId, LocalDate date);
 }

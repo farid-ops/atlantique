@@ -33,6 +33,8 @@ public class BonExpedition {
     private String poids;
     @Column
     private String valeur;
+    @Column(nullable = false)
+    private String idMarchandise;
     @Column
     private String idSite;
     @Column
