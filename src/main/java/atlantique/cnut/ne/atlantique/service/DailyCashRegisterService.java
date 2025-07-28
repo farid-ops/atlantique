@@ -11,6 +11,8 @@ public interface DailyCashRegisterService {
 
     DailyCashRegisterDto recordDeposit(String caissierId, double amount);
 
+    DailyCashRegisterDto recordWithdrawal(String caissierId, double amount);
+
     DailyCashRegisterDto getDailySummary(String caissierId, LocalDate date);
 
     DailyCashRegisterDto closeCashRegister(String caissierId);

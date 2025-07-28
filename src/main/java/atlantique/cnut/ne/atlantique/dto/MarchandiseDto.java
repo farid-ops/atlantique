@@ -66,4 +66,7 @@ public class MarchandiseDto {
     private String idPortEmbarquementCargaison;
 
     private List<MarchandiseItemDto> marchandisesGroupage;
+
+    private Date creationDate;
+    private Date modificationDate;
 }

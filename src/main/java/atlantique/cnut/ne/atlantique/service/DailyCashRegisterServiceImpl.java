@@ -76,6 +76,28 @@ public class DailyCashRegisterServiceImpl implements DailyCashRegisterService {
     }
 
     @Override
+    public DailyCashRegisterDto recordWithdrawal(String caissierId, double amount) {
+        LocalDate today = LocalDate.now();
+        DailyCashRegister register = dailyCashRegisterRepository.findByCaissierIdAndOperationDate(caissierId, today)
+                .orElseThrow(() -> new ResourceNotFoundException("Caisse journalière non trouvée pour le caissier " + caissierId + " à la date " + today));
+
+        if (register.isClosed()) {
+            throw new IllegalArgumentException("La caisse est clôturée pour aujourd'hui. Impossible d'enregistrer de nouveaux retraits.");
+        }
+
+        // Vérifier si le solde est suffisant pour le retrait
+        if (register.getEndingBalance() < amount) {
+            throw new IllegalArgumentException("Solde insuffisant pour effectuer ce retrait. Solde actuel: " + register.getEndingBalance());
+        }
+
+        register.setTotalWithdrawals(register.getTotalWithdrawals() + amount); // Incrémenter le total des retraits
+        register.setEndingBalance(register.getEndingBalance() - amount);       // Décrémenter le solde final
+        register.setNumberOfTransactions(register.getNumberOfTransactions() + 1); // Incrémenter le nombre de transactions
+
+        log.info("Recording withdrawal of {} for cashier {}. New total withdrawals: {}. New ending balance: {}.", amount, caissierId, register.getTotalWithdrawals(), register.getEndingBalance());
+        return convertToDto(dailyCashRegisterRepository.save(register));    }
+
+    @Override
     @Transactional
     public DailyCashRegisterDto getDailySummary(String caissierId, LocalDate date) {
         DailyCashRegister register = dailyCashRegisterRepository.findByCaissierIdAndOperationDate(caissierId, date)

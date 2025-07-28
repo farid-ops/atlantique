@@ -22,6 +22,7 @@ import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,11 +48,28 @@ public class MarchandiseServiceImpl implements MarchandiseService {
     public MarchandiseDto updateMarchandise(String id, MarchandiseDto marchandiseDto) {
         log.info("Updating marchandise with id: {}", id);
         return marchandiseRepository.findById(id).map(existingMarchandise -> {
+
+            if (existingMarchandise.getStatus() != MarchandiseStatus.BROUILLON && existingMarchandise.getStatus() != MarchandiseStatus.REJETE){
+                throw new IllegalArgumentException("La marchandise avec le statut '" + existingMarchandise.getStatus().getDisplayName() + "' ne peut pas être modifiée.");
+            }
+
             Marchandise updatedMarchandise = updateEntityFromDto(existingMarchandise, marchandiseDto);
+            this.validateCargaisonDates(updatedMarchandise);
             performCalculations(updatedMarchandise);
             Marchandise savedMarchandise = marchandiseRepository.save(updatedMarchandise);
             return convertToDto(savedMarchandise);
         }).orElseThrow(() -> new ResourceNotFoundException("Marchandise not found with id " + id));
+    }
+
+    private void validateCargaisonDates(Marchandise marchandise) {
+        if (marchandise.getDateDepartureNavireCargaison() == null || marchandise.getDateArriveNavireCargaison() == null) {
+            throw new IllegalArgumentException("Les dates de départ et d'arrivée du navire sont obligatoires.");
+        }
+
+        if (marchandise.getDateDepartureNavireCargaison().after(marchandise.getDateArriveNavireCargaison()) ||
+                marchandise.getDateDepartureNavireCargaison().equals(marchandise.getDateArriveNavireCargaison())) {
+            throw new IllegalArgumentException("La date de départ du navire doit être antérieure à la date d'arrivée.");
+        }
     }
 
     private void performCalculations(Marchandise marchandise) {
@@ -133,14 +151,50 @@ public class MarchandiseServiceImpl implements MarchandiseService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<MarchandiseDto> findAllMarchandisesPaginated(Pageable pageable) {
-        Page<Marchandise> page = marchandiseRepository.findAll(pageable);
+        String currentUserId = this.getCurrentUserId();
+        Set<String> currentUserRoles = this.getCurrentUserRoles();
+
+        Page<Marchandise> page;
+
+        if (currentUserRoles.contains("ADMIN")) {
+            page = marchandiseRepository.findAll(pageable);
+        } else if (currentUserRoles.contains("OPERATEUR")) {
+            page = marchandiseRepository.findByIdUtilisateur(currentUserId, pageable);
+        } else if (currentUserRoles.contains("CAISSIER")) {
+            page = marchandiseRepository.findForCaissierCombined(currentUserId, pageable);
+        } else if (currentUserRoles.contains("CSITE")) {
+            String currentUserSiteId = getCurrentUserSiteId();
+            page = marchandiseRepository.findByLieuEmissionCargaison(currentUserSiteId, pageable);
+        } else {
+            page = Page.empty(pageable);
+        }
+
         return page.map(this::convertToDto);
     }
 
     @Override
-    public List<MarchandiseDto> getMarchandises() {
-        return this.marchandiseRepository.findAll().stream().map(this::convertToDto).collect(Collectors.toList());
+    public List<MarchandiseDto> getMarchandises(){
+        String currentUserId = getCurrentUserId();
+        Set<String> currentUserRoles = getCurrentUserRoles();
+
+        List<Marchandise> list;
+
+        if (currentUserRoles.contains("ADMIN")) {
+            list = marchandiseRepository.findAll();
+        } else if (currentUserRoles.contains("OPERATEUR")) {
+            list = marchandiseRepository.findByIdUtilisateur(currentUserId);
+        } else if (currentUserRoles.contains("CAISSIER")) {
+            list = marchandiseRepository.findForCaissierCombinedList(currentUserId);
+        } else if (currentUserRoles.contains("CSITE")) {
+            String currentUserSiteId = getCurrentUserSiteId();
+            list = marchandiseRepository.findByLieuEmissionCargaison(currentUserSiteId);
+        } else {
+            list = List.of();
+        }
+
+        return list.stream().map(this::convertToDto).collect(Collectors.toList());
     }
 
     @Override
@@ -214,18 +268,6 @@ public class MarchandiseServiceImpl implements MarchandiseService {
                     Marchandise updatedMarchandise = marchandiseRepository.save(marchandise);
                     return convertToDto(updatedMarchandise);
                 }).orElseThrow(() -> new ResourceNotFoundException("Marchandise non trouvée avec l'ID: " + id));
-    }
-
-
-    private String getCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()) {
-            String username = authentication.getName();
-            return utilisateurService.findByPhone(username)
-                    .map(user -> user.getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Utilisateur authentifié non trouvé dans la base de données."));
-        }
-        throw new IllegalStateException("Aucun utilisateur authentifié.");
     }
 
     private Marchandise convertToEntity(MarchandiseDto marchandiseDto) {
@@ -384,6 +426,9 @@ public class MarchandiseServiceImpl implements MarchandiseService {
         dto.setDateDepartureNavireCargaison(marchandise.getDateDepartureNavireCargaison());
         dto.setIdPortEmbarquementCargaison(marchandise.getIdPortEmbarquementCargaison());
 
+        dto.setCreationDate(marchandise.getCreationDate());
+        dto.setModificationDate(marchandise.getModificationDate());
+
         if (marchandise.getMarchandisesGroupage() != null) {
             dto.setMarchandisesGroupage(marchandise.getMarchandisesGroupage().stream()
                     .map(item -> new MarchandiseItemDto(item.getPoids(), item.getNombreColis(), item.getNumeroBl()))
@@ -391,5 +436,34 @@ public class MarchandiseServiceImpl implements MarchandiseService {
         }
 
         return dto;
+    }
+
+    private Optional<Utilisateur> getAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
+            return Optional.empty();
+        }
+        String username = authentication.getName();
+        return this.utilisateurRepository.findById(username);
+    }
+
+    private String getCurrentUserId() {
+        return getAuthenticatedUser()
+                .map(Utilisateur::getId)
+                .orElseThrow(() -> new IllegalStateException("Aucun utilisateur authentifié."));
+    }
+
+    private Set<String> getCurrentUserRoles() {
+        return getAuthenticatedUser()
+                .map(user -> user.getAuthorites().stream()
+                        .map(autorite -> autorite.getNom().toUpperCase())
+                        .collect(Collectors.toSet()))
+                .orElseThrow(() -> new IllegalStateException("Aucun rôle trouvé pour l'utilisateur authentifié."));
+    }
+
+    private String getCurrentUserSiteId() {
+        return getAuthenticatedUser()
+                .map(Utilisateur::getIdSite)
+                .orElseThrow(() -> new IllegalStateException("Utilisateur authentifié non trouvé ou n'a pas d'ID de site."));
     }
 }

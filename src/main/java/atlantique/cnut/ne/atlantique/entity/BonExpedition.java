@@ -45,8 +45,4 @@ public class BonExpedition {
     private Date creationDate;
     @UpdateTimestamp
     private Date modificationDate;
-
-    //les relations
-    @OneToOne
-    private ExtraBe extraBE;
 }

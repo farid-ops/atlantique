@@ -22,6 +22,8 @@ public class ExtraBe {
     @Column
     private String idUtilisateur;
     @Column
+    private String idBonExpedition;
+    @Column
     private String montant;
     @Column
     private String idSite;

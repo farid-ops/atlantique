@@ -33,24 +33,24 @@ public class DailyCashRegisterController {
 
     private String getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()) {
-            String username = authentication.getName();
-            return utilisateurService.findByPhone(username)
-                    .map(Utilisateur::getId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Utilisateur authentifié non trouvé."));
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
+            throw new IllegalStateException("Aucun utilisateur authentifié.");
         }
-        throw new IllegalStateException("Aucun utilisateur authentifié.");
+        String username = authentication.getName();
+        return utilisateurService.findByPhone(username)
+                .map(Utilisateur::getId)
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur authentifié non trouvé."));
     }
 
     private String getCurrentUserSiteId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()) {
-            String username = authentication.getName();
-            return utilisateurService.findByPhone(username)
-                    .map(Utilisateur::getIdSite)
-                    .orElseThrow(() -> new ResourceNotFoundException("Utilisateur authentifié non trouvé ou n'a pas d'ID de site."));
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
+            throw new IllegalStateException("Aucun utilisateur authentifié.");
         }
-        throw new IllegalStateException("Aucun utilisateur authentifié.");
+        String username = authentication.getName();
+        return utilisateurService.findByPhone(username)
+                .map(Utilisateur::getIdSite)
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur authentifié non trouvé ou n'a pas d'ID de site."));
     }
 
 
@@ -127,6 +127,85 @@ public class DailyCashRegisterController {
             );
         }
     }
+
+    @PostMapping("/deposit")
+    @PreAuthorize("hasAuthority('SCOPE_CAISSIER')")
+    public ResponseEntity<Map<String, Object>> recordDeposit(@RequestBody Map<String, Double> requestBody) {
+        try {
+            String caissierId = getCurrentUserId();
+            Double amount = requestBody.get("amount");
+            if (amount == null) {
+                return new ResponseEntity<>(
+                        utilService.response(StatusCode.HTTP_BAD_REQUEST.getStatus_code(), false, "Le montant du dépôt est requis.", null),
+                        HttpStatus.BAD_REQUEST
+                );
+            }
+            DailyCashRegisterDto updatedRegister = dailyCashRegisterService.recordDeposit(caissierId, amount);
+            return ResponseEntity.ok(
+                    utilService.response(
+                            StatusCode.HTTP_OK.getStatus_code(),
+                            true,
+                            "Dépôt enregistré avec succès.",
+                            updatedRegister
+                    )
+            );
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(
+                    utilService.response(StatusCode.HTTP_CONFLICT.getStatus_code(), false, e.getMessage(), null),
+                    HttpStatus.CONFLICT
+            );
+        } catch (ResourceNotFoundException e) {
+            return new ResponseEntity<>(
+                    utilService.response(StatusCode.HTTP_NOT_FOUND.getStatus_code(), false, e.getMessage(), null),
+                    HttpStatus.NOT_FOUND
+            );
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                    utilService.response(StatusCode.HTTP_INTERNAL_SERVER_ERROR.getStatus_code(), false, StatusCode.HTTP_INTERNAL_SERVER_ERROR.getStatus_message() + ": " + e.getMessage(), null),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    @PostMapping("/withdrawal") // Nouveau point d'API pour les retraits
+    @PreAuthorize("hasAuthority('SCOPE_CAISSIER')")
+    public ResponseEntity<Map<String, Object>> recordWithdrawal(@RequestBody Map<String, Double> requestBody) {
+        try {
+            String caissierId = getCurrentUserId();
+            Double amount = requestBody.get("amount");
+            if (amount == null) {
+                return new ResponseEntity<>(
+                        utilService.response(StatusCode.HTTP_BAD_REQUEST.getStatus_code(), false, "Le montant du retrait est requis.", null),
+                        HttpStatus.BAD_REQUEST
+                );
+            }
+            DailyCashRegisterDto updatedRegister = dailyCashRegisterService.recordWithdrawal(caissierId, amount);
+            return ResponseEntity.ok(
+                    utilService.response(
+                            StatusCode.HTTP_OK.getStatus_code(),
+                            true,
+                            "Retrait enregistré avec succès.",
+                            updatedRegister
+                    )
+            );
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(
+                    utilService.response(StatusCode.HTTP_CONFLICT.getStatus_code(), false, e.getMessage(), null),
+                    HttpStatus.CONFLICT
+            );
+        } catch (ResourceNotFoundException e) {
+            return new ResponseEntity<>(
+                    utilService.response(StatusCode.HTTP_NOT_FOUND.getStatus_code(), false, e.getMessage(), null),
+                    HttpStatus.NOT_FOUND
+            );
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                    utilService.response(StatusCode.HTTP_INTERNAL_SERVER_ERROR.getStatus_code(), false, StatusCode.HTTP_INTERNAL_SERVER_ERROR.getStatus_message() + ": " + e.getMessage(), null),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
 
     @GetMapping("/site-summaries/{date}")
     @PreAuthorize("hasAuthority('SCOPE_CSITE')")
