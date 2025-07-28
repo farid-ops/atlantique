@@ -37,6 +37,8 @@ public class Utilisateur {
     private String idSite;
     @Column
     private String idPays;
+    @Column
+    private double cashBalance;
     @CreationTimestamp
     private Date dateCreation;
     @UpdateTimestamp

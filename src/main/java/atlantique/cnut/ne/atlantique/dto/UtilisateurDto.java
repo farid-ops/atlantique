@@ -34,6 +34,7 @@ public class UtilisateurDto {
     private String idSite;
     @NotBlank(message = "L'ID du pays ne peut pas être vide.")
     private String idPays;
+    private double cashBalance;
     private Set<String> autoriteIds;
     private Boolean enabled;
 }

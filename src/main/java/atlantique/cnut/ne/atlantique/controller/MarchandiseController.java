@@ -1,7 +1,6 @@
 package atlantique.cnut.ne.atlantique.controller;
 
 import atlantique.cnut.ne.atlantique.dto.MarchandiseDto;
-import atlantique.cnut.ne.atlantique.entity.Marchandise;
 import atlantique.cnut.ne.atlantique.exceptions.ResourceNotFoundException;
 import atlantique.cnut.ne.atlantique.exceptions.StatusCode;
 import atlantique.cnut.ne.atlantique.service.MarchandiseService;
@@ -14,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -29,10 +29,10 @@ public class MarchandiseController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR')")
     public ResponseEntity<Map<String, Object>> createMarchandise(@RequestBody @Valid MarchandiseDto marchandiseDto) {
         try {
-            Marchandise newMarchandise = marchandiseService.createMarchandise(marchandiseDto);
+            MarchandiseDto newMarchandise = marchandiseService.createMarchandise(marchandiseDto);
             return new ResponseEntity<>(
                     utilService.response(
                             StatusCode.HTTP_MARCHANDISE_CREATED.getStatus_code(),
@@ -75,40 +75,11 @@ public class MarchandiseController {
         }
     }
 
-    @GetMapping
-    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN', 'SCOPE_CSITE', 'SCOPE_CAISSIER')")
-    public ResponseEntity<Map<String, Object>> getAllMarchandises(Pageable pageable) {
-        Page<Marchandise> marchandisePage = marchandiseService.findAllMarchandisesPaginated(pageable);
-        return ResponseEntity.ok(
-                utilService.response(
-                        StatusCode.HTTP_MARCHANDISE_RETRIEVED.getStatus_code(),
-                        true,
-                        StatusCode.HTTP_MARCHANDISE_RETRIEVED.getStatus_message(),
-                        marchandisePage
-                )
-        );
-    }
-
-    @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN', 'SCOPE_CSITE', 'SCOPE_CAISSIER')")
-    public ResponseEntity<Map<String, Object>> getMarchandiseById(@PathVariable String id) {
-        return marchandiseService.findMarchandiseById(id)
-                .map(marchandise -> ResponseEntity.ok(
-                        utilService.response(
-                                StatusCode.HTTP_MARCHANDISE_RETRIEVED.getStatus_code(),
-                                true,
-                                StatusCode.HTTP_MARCHANDISE_RETRIEVED.getStatus_message(),
-                                marchandise
-                        )
-                ))
-                .orElseThrow(() -> new ResourceNotFoundException("Marchandise non trouvée avec l'ID: " + id));
-    }
-
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR')")
     public ResponseEntity<Map<String, Object>> updateMarchandise(@PathVariable String id, @RequestBody @Valid MarchandiseDto marchandiseDto) {
         try {
-            Marchandise updatedMarchandise = marchandiseService.updateMarchandise(id, marchandiseDto);
+            MarchandiseDto updatedMarchandise = marchandiseService.updateMarchandise(id, marchandiseDto);
             return ResponseEntity.ok(
                     utilService.response(
                             StatusCode.HTTP_MARCHANDISE_UPDATED.getStatus_code(),
@@ -118,6 +89,63 @@ public class MarchandiseController {
                     )
             );
         } catch (ResourceNotFoundException e) {
+            return new ResponseEntity<>(
+                    utilService.response(
+                            StatusCode.HTTP_BAD_REQUEST.getStatus_code(),
+                            false,
+                            e.getMessage(),
+                            null
+                    ),
+                    HttpStatus.BAD_REQUEST
+            );
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(
+                    utilService.response(
+                            StatusCode.HTTP_CONFLICT.getStatus_code(),
+                            false,
+                            e.getMessage(),
+                            null
+                    ),
+                    HttpStatus.CONFLICT
+            );
+        }
+        catch (Exception e) {
+            return new ResponseEntity<>(
+                    utilService.response(
+                            StatusCode.HTTP_INTERNAL_SERVER_ERROR.getStatus_code(),
+                            false,
+                            StatusCode.HTTP_INTERNAL_SERVER_ERROR.getStatus_message() + ": " + e.getMessage(),
+                            null
+                    ),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    @PostMapping("/{id}/submit-for-validation")
+    @PreAuthorize("hasAuthority('SCOPE_OPERATEUR')")
+    public ResponseEntity<Map<String, Object>> submitMarchandiseForValidation(@PathVariable String id) {
+        try {
+            MarchandiseDto submittedMarchandise = marchandiseService.submitMarchandiseForValidation(id);
+            return ResponseEntity.ok(
+                    utilService.response(
+                            StatusCode.HTTP_OK.getStatus_code(),
+                            true,
+                            "Marchandise soumise pour validation avec succès.",
+                            submittedMarchandise
+                    )
+            );
+        } catch (ResourceNotFoundException e) {
+            return new ResponseEntity<>(
+                    utilService.response(
+                            StatusCode.HTTP_NOT_FOUND.getStatus_code(),
+                            false,
+                            e.getMessage(),
+                            null
+                    ),
+                    HttpStatus.NOT_FOUND
+            );
+        } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(
                     utilService.response(
                             StatusCode.HTTP_BAD_REQUEST.getStatus_code(),
@@ -140,8 +168,109 @@ public class MarchandiseController {
         }
     }
 
+    @PostMapping("/{id}/validate")
+    @PreAuthorize("hasAuthority('SCOPE_CAISSIER')")
+    public ResponseEntity<Map<String, Object>> validateMarchandise(@PathVariable String id, @RequestBody Map<String, Boolean> requestBody) {
+        Boolean isValid = requestBody.get("isValid");
+        if (isValid == null) {
+            return new ResponseEntity<>(
+                    utilService.response(
+                            StatusCode.HTTP_BAD_REQUEST.getStatus_code(),
+                            false,
+                            "Le paramètre 'isValid' est requis dans le corps de la requête.",
+                            null
+                    ),
+                    HttpStatus.BAD_REQUEST
+            );
+        }
+
+        try {
+            MarchandiseDto validatedMarchandise = marchandiseService.validateMarchandise(id, isValid);
+            String message = isValid ? "Marchandise validée avec succès." : "Marchandise rejetée avec succès.";
+            return ResponseEntity.ok(
+                    utilService.response(
+                            StatusCode.HTTP_OK.getStatus_code(),
+                            true,
+                            message,
+                            validatedMarchandise
+                    )
+            );
+        } catch (ResourceNotFoundException e) {
+            return new ResponseEntity<>(
+                    utilService.response(
+                            StatusCode.HTTP_NOT_FOUND.getStatus_code(),
+                            false,
+                            e.getMessage(),
+                            null
+                    ),
+                    HttpStatus.NOT_FOUND
+            );
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(
+                    utilService.response(
+                            StatusCode.HTTP_BAD_REQUEST.getStatus_code(),
+                            false,
+                            e.getMessage(),
+                            null
+                    ),
+                    HttpStatus.BAD_REQUEST
+            );
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                    utilService.response(
+                            StatusCode.HTTP_INTERNAL_SERVER_ERROR.getStatus_code(),
+                            false,
+                            StatusCode.HTTP_INTERNAL_SERVER_ERROR.getStatus_message() + ": " + e.getMessage(),
+                            null
+                    ),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    @GetMapping
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN', 'SCOPE_CSITE', 'SCOPE_CAISSIER')")
+    public ResponseEntity<Map<String, Object>> findAllMarchandisesPaginated(Pageable pageable) {
+        Page<MarchandiseDto> marchandisePage = marchandiseService.findAllMarchandisesPaginated(pageable);
+        return ResponseEntity.ok(
+                utilService.response(
+                        StatusCode.HTTP_MARCHANDISE_RETRIEVED.getStatus_code(),
+                        true,
+                        StatusCode.HTTP_MARCHANDISE_RETRIEVED.getStatus_message(),
+                        marchandisePage
+                )
+        );
+    }
+
+    @GetMapping("/non-pageable")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN', 'SCOPE_CSITE', 'SCOPE_CAISSIER')")
+    public ResponseEntity<Map<String, Object>> getMarchandises() {
+        List<MarchandiseDto> marchandises = marchandiseService.getMarchandises();
+        return ResponseEntity.ok(
+                utilService.response(
+                        StatusCode.HTTP_MARCHANDISE_RETRIEVED.getStatus_code(),
+                        true,
+                        StatusCode.HTTP_MARCHANDISE_RETRIEVED.getStatus_message(),
+                        marchandises
+                )
+        );
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN', 'SCOPE_CSITE', 'SCOPE_CAISSIER')")
+    public ResponseEntity<Map<String, Object>> getMarchandiseById(@PathVariable String id) {
+        return ResponseEntity.ok(
+                utilService.response(
+                        StatusCode.HTTP_MARCHANDISE_RETRIEVED.getStatus_code(),
+                        true,
+                        StatusCode.HTTP_MARCHANDISE_RETRIEVED.getStatus_message(),
+                        marchandiseService.getMarchandiseById(id)
+                )
+        );
+    }
+
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')") // Only ADMIN can delete
     public ResponseEntity<Map<String, Object>> deleteMarchandise(@PathVariable String id) {
         try {
             marchandiseService.deleteMarchandise(id);
@@ -155,7 +284,18 @@ public class MarchandiseController {
             );
         } catch (ResourceNotFoundException e) {
             throw e;
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(
+                    utilService.response(
+                            StatusCode.HTTP_FORBIDDEN.getStatus_code(),
+                            false,
+                            e.getMessage(),
+                            null
+                    ),
+                    HttpStatus.FORBIDDEN
+            );
+        }
+        catch (Exception e) {
             return new ResponseEntity<>(
                     utilService.response(
                             StatusCode.HTTP_INTERNAL_SERVER_ERROR.getStatus_code(),

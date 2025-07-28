@@ -20,8 +20,6 @@ public class Cargaison {
     @Id @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
     @Column
-    private String idMarchandise;
-    @Column
     private String idBl;
     @Column
     private String manifeste;

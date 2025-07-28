@@ -8,6 +8,8 @@ import atlantique.cnut.ne.atlantique.exceptions.ResourceNotFoundException;
 import atlantique.cnut.ne.atlantique.repository.BlRepository;
 import atlantique.cnut.ne.atlantique.repository.CargaisonRepository;
 import atlantique.cnut.ne.atlantique.repository.PortRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -68,6 +70,11 @@ public class BlServiceImpl implements BlService {
     @Override
     public List<BL> findAllBls() {
         return blRepository.findAll();
+    }
+
+    @Override
+    public Page<BL> findAllBlsPaginated(Pageable pageable) {
+        return blRepository.findAll(pageable);
     }
 
     @Override

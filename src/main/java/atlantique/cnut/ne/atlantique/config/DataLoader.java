@@ -65,6 +65,7 @@ public class DataLoader implements CommandLineRunner {
                 newUser.setEmail(email);
                 newUser.setTelephone(phone);
                 newUser.setPassword(passwordEncoder.encode("password"));
+                newUser.setCashBalance(0);
 
                 Set<Autorite> userRoles = new HashSet<>();
                 userRoles.add(role);

@@ -1,86 +1,85 @@
 package atlantique.cnut.ne.atlantique.entity;
 
+import atlantique.cnut.ne.atlantique.enums.MarchandiseStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.util.Date;
+import java.util.List;
 
-@NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
+@ToString
 @Entity
-@Table(name = "marchandise")
+@Table(name = "marchandises")
 public class Marchandise {
-    @Id @GeneratedValue(strategy = GenerationType.UUID)
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
-    @Column
+    private String typeMarchandiseSelect;
     private String caf;
-    @Column
     private String poids;
-    @Column
     private String type;
-    @Column
     private String nombreColis;
-    @Column
     private String numeroChassis;
-    @Column
     private String numeroDouane;
-    @Column
     private String nombreConteneur;
-    @Column
     private boolean regularisation;
-    @Column
     private boolean exoneration;
-    @Column
-    private boolean conteneur;
-    @Column
+    private String conteneur;
     private String typeConteneur;
-    @Column
     private String volume;
-    @Column
     private String observation;
-    @Column
     private String numVoyage;
-    @Column
-    private String atb;
-    @Column
-    private String idUtilisateur;
-    @Column
-    private String encours;
-    @Column
-    private String rcnut1;
-    @Column
-    private String rcnut2;
-    @Column
-    private String totalQuitance;
-    @Column
-    private String abic;
-    @Column
-    private String tcps;
-    @Column
+    private String totalQuittance;
     private String be;
-    @Column
     private String visa;
-    @Column
-    private String validation;
-    @Column
+    private String coutBsc;
+    private String totalBePrice;
+
+    @Enumerated(EnumType.STRING)
+    private MarchandiseStatus status; //BROUILLON, SOUMIS_POUR_VALIDATION, VALIDE, REJETE
+    private String submittedByUserId;
+    private String validatedByUserId;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date submissionDate;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date validationDate;
+
     private String idNatureMarchandise;
-    @Column
     private String idArmateur;
-    @Column
-    private Date dateValidation;
+    private String idTransitaire;
+    private String idImportateur;
+    private String idUtilisateur;
+
+    private String idBl;
+    private String manifesteCargaison;
+    private String idSiteCargaison;
+    private String idConsignataireCargaison;
+    private String transporteurCargaison;
+    private String lieuEmissionCargaison;
+    private String idNavireCargaison;
+    private Date dateDepartureNavireCargaison;
+    private Date dateArriveNavireCargaison;
+    private String idPortEmbarquementCargaison;
+    private String idPortDebarquementCargaison;
+
     @CreationTimestamp
     private Date creationDate;
     @UpdateTimestamp
     private Date modificationDate;
-    @Column
-    private String idTransitaire;
-    @Column
-    private String idImportateur;
+
+    @ElementCollection
+    @CollectionTable(name = "marchandise_groupage_items", joinColumns = @JoinColumn(name = "marchandise_id"))
+    @AttributeOverrides({
+            @AttributeOverride(name = "poids", column = @Column(name = "item_poids")),
+            @AttributeOverride(name = "nombreColis", column = @Column(name = "item_nombre_colis")),
+            @AttributeOverride(name = "numeroBl", column = @Column(name = "item_numero_bl"))
+    })
+    private List<MarchandiseItem> marchandisesGroupage;
 }

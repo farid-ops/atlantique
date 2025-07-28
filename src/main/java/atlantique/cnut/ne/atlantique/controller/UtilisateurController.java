@@ -81,7 +81,7 @@ public class UtilisateurController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOOPE_OPERATEUR', 'SCOPE_STATICIEN', 'SCOPE_USER')")
+//    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOOPE_OPERATEUR', 'SCOPE_STATICIEN', 'SCOPE_USER')")
     public ResponseEntity<Map<String, Object>> getUtilisateurById(@PathVariable String id) {
         return utilisateurService.findUtilisateurById(id)
                 .map(utilisateur -> ResponseEntity.ok(
