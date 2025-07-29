@@ -35,7 +35,6 @@ public class JwtUtils {
                 .claim("scope", scope)
                 .claim("type", tokenType);
 
-        // Ajout des informations spécifiques de l'entité Utilisateur comme claims
         claimsBuilder.claim("id", utilisateur.getId());
         claimsBuilder.claim("nom", utilisateur.getNom());
         claimsBuilder.claim("prenom", utilisateur.getPrenom());
@@ -43,6 +42,7 @@ public class JwtUtils {
         claimsBuilder.claim("phone", utilisateur.getTelephone());
         claimsBuilder.claim("idSite", utilisateur.getIdSite());
         claimsBuilder.claim("idPays", utilisateur.getIdPays());
+        claimsBuilder.claim("idGroupe", utilisateur.getIdGroupe());
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claimsBuilder.build())).getTokenValue();
     }

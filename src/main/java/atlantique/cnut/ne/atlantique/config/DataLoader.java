@@ -1,8 +1,10 @@
 package atlantique.cnut.ne.atlantique.config;
 
 import atlantique.cnut.ne.atlantique.entity.Autorite;
+import atlantique.cnut.ne.atlantique.entity.Groupe;
 import atlantique.cnut.ne.atlantique.entity.Utilisateur;
 import atlantique.cnut.ne.atlantique.repository.AutoriteRepository;
+import atlantique.cnut.ne.atlantique.repository.GroupeRepository;
 import atlantique.cnut.ne.atlantique.repository.UtilisateurRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,18 +23,21 @@ public class DataLoader implements CommandLineRunner {
 
     private final AutoriteRepository autoriteRepository;
     private final UtilisateurRepository utilisateurRepository;
+    private final GroupeRepository groupeRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public DataLoader(AutoriteRepository autoriteRepository, UtilisateurRepository utilisateurRepository, PasswordEncoder passwordEncoder) {
+    public DataLoader(AutoriteRepository autoriteRepository, UtilisateurRepository utilisateurRepository,
+                      GroupeRepository groupeRepository, PasswordEncoder passwordEncoder) {
         this.autoriteRepository = autoriteRepository;
         this.utilisateurRepository = utilisateurRepository;
+        this.groupeRepository = groupeRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        String[] roles = {"USER", "ADMIN", "OPERATEUR", "CAISSIER", "CSITE", "STATICIEN"};
+        String[] roles = {"USER", "ADMIN", "OPERATEUR", "CAISSIER", "CSITE", "STATICIEN", "SUPERUTILISATEUR", "ADMINISTRATEUR_GROUPE"};
         Set<Autorite> allAuthorities = new HashSet<>();
 
         for (String roleName : roles) {
@@ -48,6 +53,23 @@ public class DataLoader implements CommandLineRunner {
                             }
                     );
         }
+
+        Groupe defaultGroupe = groupeRepository.findByDenomination("GROUPE_PAR_DEFAUT")
+                .orElseGet(() -> {
+                    Groupe newDefaultGroupe = new Groupe();
+                    newDefaultGroupe.setDenomination("GROUPE_PAR_DEFAUT");
+                    newDefaultGroupe.setAdresse("Adresse par défaut");
+                    newDefaultGroupe.setEmail("default@groupe.com");
+                    newDefaultGroupe.setTelephone("0000000000");
+                    newDefaultGroupe.setNif("NIF_DEFAUT");
+                    newDefaultGroupe.setBp("BP_DEFAUT");
+                    newDefaultGroupe.setSiteWeb("www.defaultgroupe.com");
+                    newDefaultGroupe.setPrixBeStandard(50000.0);
+                    newDefaultGroupe.setVisaVehiculeMoins5000kg(15000.0);
+                    newDefaultGroupe.setVisaVehiculePlus5000kg(20000.0);
+                    logger.info("Groupe par défaut 'GROUPE_PAR_DEFAUT' créé.");
+                    return groupeRepository.save(newDefaultGroupe);
+                });
 
         int phoneSuffix = 0;
 
@@ -66,7 +88,7 @@ public class DataLoader implements CommandLineRunner {
                 newUser.setTelephone(phone);
                 newUser.setPassword(passwordEncoder.encode("password"));
                 newUser.setCashBalance(0);
-
+                newUser.setIdGroupe(defaultGroupe.getId());
                 Set<Autorite> userRoles = new HashSet<>();
                 userRoles.add(role);
                 newUser.setAuthorites(userRoles);
@@ -77,7 +99,7 @@ public class DataLoader implements CommandLineRunner {
                 newUser.setEnabled(true);
 
                 utilisateurRepository.save(newUser);
-                logger.info("Utilisateur '{}' créé: {}", roleName, phone);
+                logger.info("Utilisateur '{}' créé et associé au groupe par défaut: {}", roleName, phone);
             } else {
                 logger.info("Utilisateur '{}' existe déjà: {}", roleName, phone);
                 phoneSuffix++;

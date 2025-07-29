@@ -2,6 +2,7 @@ package atlantique.cnut.ne.atlantique.service;
 
 import atlantique.cnut.ne.atlantique.dto.MarchandiseDto;
 import atlantique.cnut.ne.atlantique.dto.MarchandiseItemDto;
+import atlantique.cnut.ne.atlantique.entity.Groupe;
 import atlantique.cnut.ne.atlantique.entity.Marchandise;
 import atlantique.cnut.ne.atlantique.entity.MarchandiseItem;
 import atlantique.cnut.ne.atlantique.entity.Utilisateur;
@@ -34,6 +35,7 @@ public class MarchandiseServiceImpl implements MarchandiseService {
     private final UtilisateurService utilisateurService;
     private final UtilisateurRepository utilisateurRepository;
     private final DailyCashRegisterService dailyCashRegisterService;
+    private final GroupeService groupeService;
 
     @Override
     public MarchandiseDto createMarchandise(MarchandiseDto marchandiseDto) {
@@ -73,6 +75,18 @@ public class MarchandiseServiceImpl implements MarchandiseService {
     }
 
     private void performCalculations(Marchandise marchandise) {
+        Optional<Utilisateur> utilisateurOpt = utilisateurRepository.findById(marchandise.getIdUtilisateur());
+        Groupe groupeConfig = null;
+        if (utilisateurOpt.isPresent() && utilisateurOpt.get().getIdGroupe() != null) {
+            groupeConfig = groupeService.findGroupeById(utilisateurOpt.get().getIdGroupe())
+                    .orElse(null);
+        }
+
+        double prixBeStandard = (groupeConfig != null && groupeConfig.getPrixBeStandard() != null) ? groupeConfig.getPrixBeStandard() : 50000.0;
+        double visaVehiculeMoins5000kg = (groupeConfig != null && groupeConfig.getVisaVehiculeMoins5000kg() != null) ? groupeConfig.getVisaVehiculeMoins5000kg() : 15000.0;
+        double visaVehiculePlus5000kg = (groupeConfig != null && groupeConfig.getVisaVehiculePlus5000kg() != null) ? groupeConfig.getVisaVehiculePlus5000kg() : 20000.0;
+
+
         if (marchandise.isExoneration()) {
             marchandise.setBe("0");
             marchandise.setCoutBsc("0");
@@ -86,16 +100,17 @@ public class MarchandiseServiceImpl implements MarchandiseService {
         double be = 0.0;
         double totalBePriceCalculated = 0.0;
 
+
         String conteneurType = marchandise.getConteneur();
         String natureMarchandise = marchandise.getIdNatureMarchandise();
 
         if ("simple".equalsIgnoreCase(conteneurType)) {
             be = 0;
-            coutBsc = 50000;
+            coutBsc = prixBeStandard;
         } else if ("groupage".equalsIgnoreCase(conteneurType)) {
             be = 0;
             if (marchandise.getMarchandisesGroupage() != null) {
-                coutBsc = 50000.0 * marchandise.getMarchandisesGroupage().size();
+                coutBsc = prixBeStandard * marchandise.getMarchandisesGroupage().size();
             } else {
                 coutBsc = 0.0;
             }
@@ -124,16 +139,18 @@ public class MarchandiseServiceImpl implements MarchandiseService {
             try {
                 double poids = Double.parseDouble(marchandise.getPoids());
                 if (poids < 5000) {
-                    visa = 15000;
+                    visa = visaVehiculeMoins5000kg;
                 } else {
-                    visa = 20000;
+                    visa = visaVehiculePlus5000kg;
                 }
             } catch (NumberFormatException e) {
                 visa = 0;
             }
+        } else {
+            visa = 0;
         }
 
-        double totalQuittance = coutBsc + (be * 10000) + visa;
+        double totalQuittance = coutBsc + totalBePriceCalculated + visa;
 
         marchandise.setBe(String.valueOf(be));
         marchandise.setCoutBsc(String.valueOf(coutBsc));
@@ -141,6 +158,7 @@ public class MarchandiseServiceImpl implements MarchandiseService {
         marchandise.setTotalQuittance(String.valueOf(totalQuittance));
         marchandise.setTotalBePrice(String.valueOf(totalBePriceCalculated));
     }
+
 
 
     @Override
