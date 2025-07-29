@@ -14,6 +14,8 @@ public interface DailyCashRegisterService {
 
     DailyCashRegisterDto getDailySummary(String caissierId, LocalDate date);
 
+    List<DailyCashRegisterDto> getDailySummariesForCaissier(String caissierId, LocalDate startDate, LocalDate endDate);
+
     DailyCashRegisterDto closeCashRegister(String caissierId);
 
     DailyCashRegisterDto openCashRegister(String caissierId);

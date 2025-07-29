@@ -91,6 +91,57 @@ public class DailyCashRegisterController {
         }
     }
 
+    @GetMapping("/summary-range")
+    @PreAuthorize("hasAuthority('SCOPE_CAISSIER')")
+    public ResponseEntity<Map<String, Object>> getMyDailySummaryRange(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        try {
+            String caissierId = getCurrentUserId();
+            List<DailyCashRegisterDto> summaries = dailyCashRegisterService.getDailySummariesForCaissier(caissierId, startDate, endDate);
+            if (summaries.isEmpty()) {
+                return new ResponseEntity<>(
+                        utilService.response(
+                                StatusCode.HTTP_NOT_FOUND.getStatus_code(),
+                                false,
+                                "Aucun résumé de caisse trouvé pour votre compte entre le " + startDate + " et le " + endDate + ".",
+                                null
+                        ),
+                        HttpStatus.NOT_FOUND
+                );
+            }
+            return ResponseEntity.ok(
+                    utilService.response(
+                            StatusCode.HTTP_OK.getStatus_code(),
+                            true,
+                            "Résumés de caisse pour votre compte entre le " + startDate + " et le " + endDate + " récupérés avec succès.",
+                            summaries
+                    )
+            );
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(
+                    utilService.response(
+                            StatusCode.HTTP_BAD_REQUEST.getStatus_code(),
+                            false,
+                            e.getMessage(),
+                            null
+                    ),
+                    HttpStatus.BAD_REQUEST
+            );
+        }
+        catch (Exception e) {
+            return new ResponseEntity<>(
+                    utilService.response(
+                            StatusCode.HTTP_INTERNAL_SERVER_ERROR.getStatus_code(),
+                            false,
+                            StatusCode.HTTP_INTERNAL_SERVER_ERROR.getStatus_message() + ": " + e.getMessage(),
+                            null
+                    ),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
     @GetMapping("/summary/{date}")
     @PreAuthorize("hasAuthority('SCOPE_CAISSIER')")
     public ResponseEntity<Map<String, Object>> getMyDailySummaryByDate(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
@@ -167,7 +218,7 @@ public class DailyCashRegisterController {
         }
     }
 
-    @PostMapping("/withdrawal") // Nouveau point d'API pour les retraits
+    @PostMapping("/withdrawal")
     @PreAuthorize("hasAuthority('SCOPE_CAISSIER')")
     public ResponseEntity<Map<String, Object>> recordWithdrawal(@RequestBody Map<String, Double> requestBody) {
         try {
@@ -207,14 +258,14 @@ public class DailyCashRegisterController {
     }
 
 
-    @GetMapping("/site-summaries") // Changement de l'URL pour ne pas avoir de date en path variable unique
+    @GetMapping("/site-summaries")
     @PreAuthorize("hasAuthority('SCOPE_CSITE')")
     public ResponseEntity<Map<String, Object>> getSiteCashiersSummariesByDate(
             @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         try {
             String siteId = getCurrentUserSiteId();
-            List<DailyCashRegisterDto> summaries = dailyCashRegisterService.getDailySummariesForSite(siteId, startDate, endDate); // Appel avec deux dates
+            List<DailyCashRegisterDto> summaries = dailyCashRegisterService.getDailySummariesForSite(siteId, startDate, endDate);
             if (summaries.isEmpty()) {
                 return new ResponseEntity<>(
                         utilService.response(

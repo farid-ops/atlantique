@@ -86,14 +86,13 @@ public class DailyCashRegisterServiceImpl implements DailyCashRegisterService {
             throw new IllegalArgumentException("La caisse est clôturée pour aujourd'hui. Impossible d'enregistrer de nouveaux retraits.");
         }
 
-        // Vérifier si le solde est suffisant pour le retrait
         if (register.getEndingBalance() < amount) {
             throw new IllegalArgumentException("Solde insuffisant pour effectuer ce retrait. Solde actuel: " + register.getEndingBalance());
         }
 
-        register.setTotalWithdrawals(register.getTotalWithdrawals() + amount); // Incrémenter le total des retraits
-        register.setEndingBalance(register.getEndingBalance() - amount);       // Décrémenter le solde final
-        register.setNumberOfTransactions(register.getNumberOfTransactions() + 1); // Incrémenter le nombre de transactions
+        register.setTotalWithdrawals(register.getTotalWithdrawals() + amount);
+        register.setEndingBalance(register.getEndingBalance() - amount);
+        register.setNumberOfTransactions(register.getNumberOfTransactions() + 1);
 
         log.info("Recording withdrawal of {} for cashier {}. New total withdrawals: {}. New ending balance: {}.", amount, caissierId, register.getTotalWithdrawals(), register.getEndingBalance());
         return convertToDto(dailyCashRegisterRepository.save(register));    }
@@ -104,6 +103,15 @@ public class DailyCashRegisterServiceImpl implements DailyCashRegisterService {
         DailyCashRegister register = dailyCashRegisterRepository.findByCaissierIdAndOperationDate(caissierId, date)
                 .orElseThrow(() -> new ResourceNotFoundException("Résumé de caisse non trouvé pour le caissier " + caissierId + " à la date " + date));
         return convertToDto(register);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DailyCashRegisterDto> getDailySummariesForCaissier(String caissierId, LocalDate startDate, LocalDate endDate) {
+        List<DailyCashRegister> summaries = dailyCashRegisterRepository.findByCaissierIdAndOperationDateBetween(caissierId, startDate, endDate);
+        return summaries.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
     }
 
     @Override
