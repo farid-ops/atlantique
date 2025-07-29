@@ -6,6 +6,7 @@ import atlantique.cnut.ne.atlantique.entity.Utilisateur;
 import atlantique.cnut.ne.atlantique.exceptions.ResourceNotFoundException;
 import atlantique.cnut.ne.atlantique.repository.AutoriteRepository;
 import atlantique.cnut.ne.atlantique.repository.UtilisateurRepository;
+import atlantique.cnut.ne.atlantique.repository.GroupeRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,13 +26,16 @@ public class UtilisateurServiceImpl implements UtilisateurService {
     private final UtilisateurRepository utilisateurRepository;
     private final PasswordEncoder passwordEncoder;
     private final AutoriteRepository autoriteRepository;
+    private final GroupeRepository groupeRepository;
 
     public UtilisateurServiceImpl(UtilisateurRepository utilisateurRepository,
                                   PasswordEncoder passwordEncoder,
-                                  AutoriteRepository autoriteRepository) {
+                                  AutoriteRepository autoriteRepository,
+                                  GroupeRepository groupeRepository) {
         this.utilisateurRepository = utilisateurRepository;
         this.passwordEncoder = passwordEncoder;
         this.autoriteRepository = autoriteRepository;
+        this.groupeRepository = groupeRepository;
     }
 
     @Override
@@ -53,6 +57,15 @@ public class UtilisateurServiceImpl implements UtilisateurService {
         utilisateur.setAdresse(utilisateurDto.getAdresse());
         utilisateur.setIdSite(utilisateurDto.getIdSite());
         utilisateur.setIdPays(utilisateurDto.getIdPays());
+
+        if (utilisateurDto.getIdGroupe() != null && !utilisateurDto.getIdGroupe().isEmpty()) {
+            groupeRepository.findById(utilisateurDto.getIdGroupe())
+                    .orElseThrow(() -> new ResourceNotFoundException("Groupe non trouvé avec l'ID: " + utilisateurDto.getIdGroupe()));
+            utilisateur.setIdGroupe(utilisateurDto.getIdGroupe());
+        } else {
+            throw new IllegalArgumentException("L'ID du groupe est obligatoire pour la création d'un utilisateur.");
+        }
+
 
         utilisateur.setPassword(passwordEncoder.encode(utilisateurDto.getPassword()));
 
@@ -106,6 +119,18 @@ public class UtilisateurServiceImpl implements UtilisateurService {
                     existingUtilisateur.setAdresse(utilisateurDto.getAdresse());
                     existingUtilisateur.setIdSite(utilisateurDto.getIdSite());
                     existingUtilisateur.setIdPays(utilisateurDto.getIdPays());
+
+                    // Gérer la mise à jour de l'affectation à un groupe
+                    // Si idGroupe est fourni dans le DTO, valider et affecter
+                    if (utilisateurDto.getIdGroupe() != null && !utilisateurDto.getIdGroupe().isEmpty()) {
+                        groupeRepository.findById(utilisateurDto.getIdGroupe())
+                                .orElseThrow(() -> new ResourceNotFoundException("Groupe non trouvé avec l'ID: " + utilisateurDto.getIdGroupe()));
+                        existingUtilisateur.setIdGroupe(utilisateurDto.getIdGroupe());
+                    } else {
+                        // Si idGroupe est envoyé comme null/vide, cela signifie une désaffectation
+                        existingUtilisateur.setIdGroupe(null);
+                    }
+
 
                     if (utilisateurDto.getPassword() != null && !utilisateurDto.getPassword().isEmpty()) {
                         existingUtilisateur.setPassword(passwordEncoder.encode(utilisateurDto.getPassword()));

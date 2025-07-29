@@ -37,4 +37,5 @@ public class UtilisateurDto {
     private double cashBalance;
     private Set<String> autoriteIds;
     private Boolean enabled;
+    private String idGroupe;
 }

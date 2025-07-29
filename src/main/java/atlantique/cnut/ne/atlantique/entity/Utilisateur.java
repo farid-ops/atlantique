@@ -36,6 +36,8 @@ public class Utilisateur {
     @Column
     private String idSite;
     @Column
+    private String idGroupe;
+    @Column
     private String idPays;
     @Column
     private double cashBalance;

@@ -9,4 +9,6 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, String
 
     Optional<Utilisateur> findByTelephone(String phone);
     Optional<Utilisateur> findByEmail(String email);
+
+    long countByIdGroupe(String idGroupe);
 }
