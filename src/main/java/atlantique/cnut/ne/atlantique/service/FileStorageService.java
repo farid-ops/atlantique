@@ -7,7 +7,6 @@ import java.nio.file.Path;
 import java.util.stream.Stream;
 
 public interface FileStorageService {
-    void init();
     String save(MultipartFile file);
     Resource load(String filename);
     Path loadPath(String filename);

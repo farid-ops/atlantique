@@ -55,7 +55,7 @@ public class DailyCashRegisterController {
 
 
     @GetMapping("/summary")
-    @PreAuthorize("hasAuthority('SCOPE_CAISSIER')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_CAISSIER', 'SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> getMyDailySummaryToday() {
         try {
             String caissierId = getCurrentUserId();
@@ -92,7 +92,7 @@ public class DailyCashRegisterController {
     }
 
     @GetMapping("/summary-range")
-    @PreAuthorize("hasAuthority('SCOPE_CAISSIER')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_CAISSIER', 'SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> getMyDailySummaryRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
@@ -143,7 +143,7 @@ public class DailyCashRegisterController {
     }
 
     @GetMapping("/summary/{date}")
-    @PreAuthorize("hasAuthority('SCOPE_CAISSIER')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_CAISSIER', 'SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> getMyDailySummaryByDate(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         try {
             String caissierId = getCurrentUserId();
@@ -180,7 +180,7 @@ public class DailyCashRegisterController {
     }
 
     @PostMapping("/deposit")
-    @PreAuthorize("hasAuthority('SCOPE_CAISSIER')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_CAISSIER', 'SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> recordDeposit(@RequestBody Map<String, Double> requestBody) {
         try {
             String caissierId = getCurrentUserId();
@@ -219,7 +219,7 @@ public class DailyCashRegisterController {
     }
 
     @PostMapping("/withdrawal")
-    @PreAuthorize("hasAuthority('SCOPE_CAISSIER')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_CAISSIER', 'SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> recordWithdrawal(@RequestBody Map<String, Double> requestBody) {
         try {
             String caissierId = getCurrentUserId();
@@ -259,7 +259,7 @@ public class DailyCashRegisterController {
 
 
     @GetMapping("/site-summaries")
-    @PreAuthorize("hasAuthority('SCOPE_CSITE')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_CAISSIER', 'SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> getSiteCashiersSummariesByDate(
             @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
@@ -309,7 +309,7 @@ public class DailyCashRegisterController {
     }
 
     @PostMapping("/close")
-    @PreAuthorize("hasAuthority('SCOPE_CAISSIER')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_CAISSIER', 'SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> closeMyCashRegister() {
         try {
             String caissierId = getCurrentUserId();
@@ -356,7 +356,7 @@ public class DailyCashRegisterController {
     }
 
     @PostMapping("/open")
-    @PreAuthorize("hasAuthority('SCOPE_CAISSIER')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_CAISSIER', 'SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> openMyCashRegister() {
         try {
             String caissierId = getCurrentUserId();

@@ -123,7 +123,7 @@ public class MarchandiseController {
     }
 
     @PostMapping("/{id}/submit-for-validation")
-    @PreAuthorize("hasAuthority('SCOPE_OPERATEUR')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_OPERATEUR', 'SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> submitMarchandiseForValidation(@PathVariable String id) {
         try {
             MarchandiseDto submittedMarchandise = marchandiseService.submitMarchandiseForValidation(id);
@@ -169,7 +169,7 @@ public class MarchandiseController {
     }
 
     @PostMapping("/{id}/validate")
-    @PreAuthorize("hasAuthority('SCOPE_CAISSIER')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_CAISSIER', 'SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> validateMarchandise(@PathVariable String id, @RequestBody Map<String, Boolean> requestBody) {
         Boolean isValid = requestBody.get("isValid");
         if (isValid == null) {

@@ -1,10 +1,9 @@
 package atlantique.cnut.ne.atlantique.service;
 
-import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.slf4j.Logger;
@@ -15,31 +14,21 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 import java.util.stream.Stream;
 
 @Service
+@Transactional
 public class FileStorageServiceImpl implements FileStorageService {
 
     private static final Logger logger = LoggerFactory.getLogger(FileStorageServiceImpl.class);
 
-    @Value("${file.upload-dir}")
-    private String uploadDir;
+    private final Path rootLocation;
 
-    private Path rootLocation;
-
-    @PostConstruct
-    @Override
-    public void init() {
-        try {
-            this.rootLocation = Paths.get(uploadDir);
-            Files.createDirectories(rootLocation);
-            logger.info("Répertoire de stockage initialisé : {}", rootLocation.toAbsolutePath());
-        } catch (IOException e) {
-            throw new RuntimeException("Impossible d'initialiser le répertoire de stockage des fichiers!", e);
-        }
+    public FileStorageServiceImpl(Path rootLocation) {
+        this.rootLocation = rootLocation;
+        logger.info("FileStorageServiceImpl initialized. Root directory: {}", rootLocation.toAbsolutePath());
     }
 
     @Override
@@ -54,10 +43,10 @@ public class FileStorageServiceImpl implements FileStorageService {
                 fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
             }
             String uniqueFilename = UUID.randomUUID().toString() + fileExtension;
-            Path destinationFile = this.rootLocation.resolve(Paths.get(uniqueFilename))
-                    .normalize().toAbsolutePath();
 
-            if (!destinationFile.getParent().equals(this.rootLocation.toAbsolutePath())) {
+            Path destinationFile = this.rootLocation.resolve(uniqueFilename).normalize().toAbsolutePath();
+
+            if (!destinationFile.startsWith(this.rootLocation.toAbsolutePath())) {
                 throw new IOException("Impossible de stocker le fichier en dehors du répertoire désigné.");
             }
 
@@ -74,7 +63,7 @@ public class FileStorageServiceImpl implements FileStorageService {
     @Override
     public Resource load(String filename) {
         try {
-            Path file = rootLocation.resolve(filename);
+            Path file = this.rootLocation.resolve(filename).normalize();
             Resource resource = new UrlResource(file.toUri());
 
             if (resource.exists() || resource.isReadable()) {
@@ -89,24 +78,21 @@ public class FileStorageServiceImpl implements FileStorageService {
 
     @Override
     public Path loadPath(String filename) {
-        return rootLocation.resolve(filename);
+        return this.rootLocation.resolve(filename).normalize();
     }
 
     @Override
     public void delete(String filename) {
-        try {
-            Path file = rootLocation.resolve(filename);
-            FileSystemUtils.deleteRecursively(file);
-            logger.info("Fichier supprimé : {}", filename);
-        } catch (IOException e) {
-            logger.error("Échec de la suppression du fichier {}: {}", filename, e.getMessage(), e);
-        }
+        Path file = this.rootLocation.resolve(filename).normalize();
+        FileSystemUtils.deleteRecursively(file.toFile());
+        logger.info("Fichier supprimé : {}", filename);
     }
 
     @Override
     public void deleteByPath(String filePath) {
         try {
-            Path file = Paths.get(filePath);
+            Path file = this.rootLocation.resolve(filePath).normalize();
+
             if (Files.exists(file) && Files.isRegularFile(file)) {
                 Files.delete(file);
                 logger.info("Fichier supprimé physiquement : {}", filePath);

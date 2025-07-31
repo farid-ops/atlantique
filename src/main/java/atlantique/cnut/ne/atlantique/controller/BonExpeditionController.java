@@ -66,7 +66,7 @@ public class BonExpeditionController {
     }
 
     @PostMapping("/from-marchandise/{marchandiseId}")
-    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_CAISSIER')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR')")
     public ResponseEntity<Map<String, Object>> createBonExpeditionFromMarchandise(
             @PathVariable String marchandiseId,
             @RequestBody @Valid BonExpeditionDto bonExpeditionDto) {

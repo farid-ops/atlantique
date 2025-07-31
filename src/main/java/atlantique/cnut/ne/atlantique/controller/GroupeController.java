@@ -30,12 +30,29 @@ public class GroupeController {
     private final UtilService utilService;
 
     @PostMapping(consumes = { "multipart/form-data" })
-    @PreAuthorize("hasAuthority('SCOPE_SUPERUTILISATEUR')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> createGroupe(
-            @RequestPart("groupe") @Valid GroupeDto groupeDto,
+            @RequestParam(value = "id", required = false) String id,
+            @RequestParam("denomination") String denomination,
+            @RequestParam("telephone") String telephone,
+            @RequestParam("email") String email,
+            @RequestParam(value = "siteWeb", required = false) String siteWeb,
+            @RequestParam(value = "nif", required = false) String nif,
+            @RequestParam(value = "bp", required = false) String bp,
+            @RequestParam("adresse") String adresse,
+            @RequestParam("prixBeStandard") Double prixBeStandard,
+            @RequestParam("visaVehiculeMoins5000kg") Double visaVehiculeMoins5000kg,
+            @RequestParam("visaVehiculePlus5000kg") Double visaVehiculePlus5000kg,
             @RequestPart(value = "logoFile", required = false) MultipartFile logoFile,
             @RequestPart(value = "signatureFile", required = false) MultipartFile signatureFile) {
         try {
+            GroupeDto groupeDto = new GroupeDto(
+                    id,
+                    denomination, telephone, email, siteWeb, nif, bp, adresse,
+                    prixBeStandard, visaVehiculeMoins5000kg, visaVehiculePlus5000kg,
+                    null, null
+            );
+
             Groupe newGroupe = groupeService.createGroupe(groupeDto, logoFile, signatureFile);
             return new ResponseEntity<>(
                     utilService.response(
@@ -62,6 +79,66 @@ public class GroupeController {
                             StatusCode.HTTP_INTERNAL_SERVER_ERROR.getStatus_code(),
                             false,
                             "Erreur lors de la création du groupe: " + e.getMessage(),
+                            null
+                    ),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    @PutMapping(value = "/{id}", consumes = { "multipart/form-data" })
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    public ResponseEntity<Map<String, Object>> updateGroupe(
+            @PathVariable String id,
+            @RequestParam("denomination") String denomination,
+            @RequestParam("telephone") String telephone,
+            @RequestParam("email") String email,
+            @RequestParam(value = "siteWeb", required = false) String siteWeb,
+            @RequestParam(value = "nif", required = false) String nif,
+            @RequestParam(value = "bp", required = false) String bp,
+            @RequestParam("adresse") String adresse,
+            @RequestParam("prixBeStandard") Double prixBeStandard,
+            @RequestParam("visaVehiculeMoins5000kg") Double visaVehiculeMoins5000kg,
+            @RequestParam("visaVehiculePlus5000kg") Double visaVehiculePlus5000kg,
+            @RequestParam(value = "signatureImage", required = false) String signatureImage,
+            @RequestParam(value = "logo", required = false) String logo,
+            @RequestPart(value = "logoFile", required = false) MultipartFile logoFile,
+            @RequestPart(value = "signatureFile", required = false) MultipartFile signatureFile) {
+        try {
+            GroupeDto groupeDto = new GroupeDto(
+                    id,
+                    denomination, telephone, email, siteWeb, nif, bp, adresse,
+                    prixBeStandard, visaVehiculeMoins5000kg, visaVehiculePlus5000kg,
+                    signatureImage, logo
+            );
+
+            Groupe updatedGroupe = groupeService.updateGroupe(id, groupeDto, logoFile, signatureFile);
+            return ResponseEntity.ok(
+                    utilService.response(
+                            StatusCode.HTTP_OK.getStatus_code(),
+                            true,
+                            "Groupe mis à jour avec succès.",
+                            updatedGroupe
+                    )
+            );
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(
+                    utilService.response(
+                            StatusCode.HTTP_CONFLICT.getStatus_code(),
+                            false,
+                            e.getMessage(),
+                            null
+                    ),
+                    HttpStatus.CONFLICT
+            );
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                    utilService.response(
+                            StatusCode.HTTP_INTERNAL_SERVER_ERROR.getStatus_code(),
+                            false,
+                            "Erreur lors de la mise à jour du groupe: " + e.getMessage(),
                             null
                     ),
                     HttpStatus.INTERNAL_SERVER_ERROR
@@ -110,48 +187,6 @@ public class GroupeController {
                         groupePage
                 )
         );
-    }
-
-    @PutMapping(value = "/{id}", consumes = { "multipart/form-data" })
-    @PreAuthorize("hasAuthority('SCOPE_SUPERUTILISATEUR')")
-    public ResponseEntity<Map<String, Object>> updateGroupe(
-            @PathVariable String id,
-            @RequestPart("groupe") @Valid GroupeDto groupeDto,
-            @RequestPart(value = "logoFile", required = false) MultipartFile logoFile,
-            @RequestPart(value = "signatureFile", required = false) MultipartFile signatureFile) {
-        try {
-            Groupe updatedGroupe = groupeService.updateGroupe(id, groupeDto, logoFile, signatureFile);
-            return ResponseEntity.ok(
-                    utilService.response(
-                            StatusCode.HTTP_OK.getStatus_code(),
-                            true,
-                            "Groupe mis à jour avec succès.",
-                            updatedGroupe
-                    )
-            );
-        } catch (ResourceNotFoundException e) {
-            throw e;
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(
-                    utilService.response(
-                            StatusCode.HTTP_CONFLICT.getStatus_code(),
-                            false,
-                            e.getMessage(),
-                            null
-                    ),
-                    HttpStatus.CONFLICT
-            );
-        } catch (Exception e) {
-            return new ResponseEntity<>(
-                    utilService.response(
-                            StatusCode.HTTP_INTERNAL_SERVER_ERROR.getStatus_code(),
-                            false,
-                            "Erreur lors de la mise à jour du groupe: " + e.getMessage(),
-                            null
-                    ),
-                    HttpStatus.INTERNAL_SERVER_ERROR
-            );
-        }
     }
 
     @DeleteMapping("/{id}")

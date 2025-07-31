@@ -28,7 +28,7 @@ public class AutoriteController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> createAutorite(@RequestBody @Valid AutoriteDto autoriteDto) {
         try {
             Autorite newAutorite = autoriteService.createAutorite(autoriteDto);
@@ -66,7 +66,7 @@ public class AutoriteController {
 
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_STATICIEN')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_STATICIEN', 'SCOPE_OPERATEUR')")
     public ResponseEntity<Map<String, Object>> getAllAutorites() {
         List<Autorite> autorites = autoriteService.findAllAutorites();
         return ResponseEntity.ok(

@@ -37,7 +37,7 @@ public class DataLoader implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        String[] roles = {"USER", "ADMIN", "OPERATEUR", "CAISSIER", "CSITE", "STATICIEN", "SUPERUTILISATEUR", "ADMINISTRATEUR_GROUPE"};
+        String[] roles = {"USER", "ADMIN", "OPERATEUR", "CAISSIER", "CSITE", "STATICIEN", "ADMINISTRATEUR_GROUPE"};
         Set<Autorite> allAuthorities = new HashSet<>();
 
         for (String roleName : roles) {
@@ -92,6 +92,9 @@ public class DataLoader implements CommandLineRunner {
                 Set<Autorite> userRoles = new HashSet<>();
                 userRoles.add(role);
                 newUser.setAuthorites(userRoles);
+
+                newUser.setIdPays("53b2150c-4157-49ee-a05d-4ebbeace860b");
+                newUser.setIdSite("4bc349f2-c024-4d9d-8dd8-28b3ad2c681d");
 
                 newUser.setAccountNonExpired(true);
                 newUser.setAccountNonLocked(true);
