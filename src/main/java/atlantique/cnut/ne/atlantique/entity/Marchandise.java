@@ -76,6 +76,12 @@ public class Marchandise {
     @Column
     private String factureCommercialeFile;
 
+    @Column
+    private String nombreVehicule;
+    @ElementCollection
+    @CollectionTable(name = "vehicules_groupage", joinColumns = @JoinColumn(name = "marchandise_id"))
+    private List<VehiculeItem> vehiculesGroupage;
+
     @CreationTimestamp
     private Date creationDate;
     @UpdateTimestamp

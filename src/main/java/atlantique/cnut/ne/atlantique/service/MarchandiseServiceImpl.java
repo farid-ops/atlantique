@@ -2,10 +2,8 @@ package atlantique.cnut.ne.atlantique.service;
 
 import atlantique.cnut.ne.atlantique.dto.MarchandiseDto;
 import atlantique.cnut.ne.atlantique.dto.MarchandiseItemDto;
-import atlantique.cnut.ne.atlantique.entity.Groupe;
-import atlantique.cnut.ne.atlantique.entity.Marchandise;
-import atlantique.cnut.ne.atlantique.entity.MarchandiseItem;
-import atlantique.cnut.ne.atlantique.entity.Utilisateur;
+import atlantique.cnut.ne.atlantique.dto.VehiculeItemDto;
+import atlantique.cnut.ne.atlantique.entity.*;
 import atlantique.cnut.ne.atlantique.enums.MarchandiseStatus;
 import atlantique.cnut.ne.atlantique.exceptions.ResourceNotFoundException;
 import atlantique.cnut.ne.atlantique.repository.MarchandiseRepository;
@@ -171,7 +169,7 @@ public class MarchandiseServiceImpl implements MarchandiseService {
         double visaVehiculePlus5000kg = (groupeConfig != null && groupeConfig.getVisaVehiculePlus5000kg() != null) ? groupeConfig.getVisaVehiculePlus5000kg() : 20000.0;
 
 
-        if (marchandise.isExoneration()) {
+        if (marchandise.isExoneration() || marchandise.isRegularisation()) {
             marchandise.setBe("0");
             marchandise.setCoutBsc("0");
             marchandise.setTotalQuittance("0");
@@ -180,67 +178,105 @@ public class MarchandiseServiceImpl implements MarchandiseService {
             return;
         }
 
+        // Réinitialisation des totaux
         double coutBsc = 0.0;
+        double visa = 0.0;
+        double totalQuittance = 0.0;
         double be = 0.0;
         double totalBePriceCalculated = 0.0;
 
 
         String conteneurType = marchandise.getConteneur();
-        String natureMarchandise = marchandise.getIdNatureMarchandise();
+        String typeMarchandise = marchandise.getTypeMarchandiseSelect();
 
-        if ("simple".equalsIgnoreCase(conteneurType)) {
-            be = 0;
-            coutBsc = prixBeStandard;
-        } else if ("groupage".equalsIgnoreCase(conteneurType)) {
-            be = 0;
-            if (marchandise.getMarchandisesGroupage() != null) {
-                coutBsc = prixBeStandard * marchandise.getMarchandisesGroupage().size();
-            } else {
-                coutBsc = 0.0;
-            }
-        } else if ("vrac".equalsIgnoreCase(conteneurType)) {
-            try {
-                double poids = Double.parseDouble(marchandise.getPoids());
-                be = Math.floor(poids / 30000);
-                if (be < 1) {
-                    be = 1;
+        if ("vehicule".equalsIgnoreCase(typeMarchandise)) {
+            List<VehiculeItem> vehiculeItems = marchandise.getVehiculesGroupage();
+            if (vehiculeItems != null && !vehiculeItems.isEmpty()) {
+                double totalPoids = 0.0;
+                for (VehiculeItem item : vehiculeItems) {
+                    double itemPoids = 0.0;
+                    try {
+                        itemPoids = Double.parseDouble(item.getPoids());
+                    } catch (NumberFormatException e) {
+                        log.warn("Poids invalide pour un véhicule de groupage.");
+                    }
+
+                    double itemVisa = 0.0;
+                    if (itemPoids < 5000) {
+                        itemVisa = visaVehiculeMoins5000kg;
+                    } else {
+                        itemVisa = visaVehiculePlus5000kg;
+                    }
+
+                    double itemCoutBsc = 50000.0;
+                    double itemTotal = itemCoutBsc + itemVisa;
+
+                    item.setVisa(String.valueOf(itemVisa));
+                    item.setCoutBsc(String.valueOf(itemCoutBsc));
+                    item.setTotal(String.valueOf(itemTotal));
+
+                    coutBsc += itemCoutBsc;
+                    visa += itemVisa;
+                    totalQuittance += itemTotal;
                 }
-                coutBsc = (poids / 1000) * 3000;
-                totalBePriceCalculated = be * 10000;
-            } catch (NumberFormatException e) {
-                be = 0;
-                coutBsc = 0;
-                totalBePriceCalculated = 0;
-            }
-        }
+            } else {
+                double poids = 0.0;
+                try {
+                    poids = Double.parseDouble(marchandise.getPoids());
+                } catch (NumberFormatException e) {
+                    log.warn("Poids invalide pour un véhicule unique.");
+                }
 
-        if (marchandise.isRegularisation()) {
-            coutBsc = 0;
-        }
-
-        double visa = 0.0;
-        if ("vehicule".equalsIgnoreCase(natureMarchandise)) {
-            try {
-                double poids = Double.parseDouble(marchandise.getPoids());
                 if (poids < 5000) {
                     visa = visaVehiculeMoins5000kg;
                 } else {
                     visa = visaVehiculePlus5000kg;
                 }
-            } catch (NumberFormatException e) {
-                visa = 0;
+                coutBsc = 50000.0;
+                totalQuittance = coutBsc + visa;
             }
-        } else {
+
+            marchandise.setBe("0");
+            marchandise.setTotalBePrice("0");
+        }
+        else {
+            if ("simple".equalsIgnoreCase(conteneurType)) {
+                be = 0;
+                coutBsc = prixBeStandard;
+            } else if ("groupage".equalsIgnoreCase(conteneurType)) {
+                be = 0;
+                if (marchandise.getMarchandisesGroupage() != null) {
+                    coutBsc = prixBeStandard * marchandise.getMarchandisesGroupage().size();
+                } else {
+                    coutBsc = 0.0;
+                }
+            } else if ("vrac".equalsIgnoreCase(conteneurType)) {
+                try {
+                    double poids = Double.parseDouble(marchandise.getPoids());
+                    be = Math.floor(poids / 30000);
+                    if (be < 1 && poids > 0) {
+                        be = 1;
+                    } else if (poids == 0) {
+                        be = 0;
+                    }
+                    coutBsc = (poids / 1000) * 3000;
+                    totalBePriceCalculated = be * prixBeStandard;
+                } catch (NumberFormatException e) {
+                    be = 0;
+                    coutBsc = 0;
+                    totalBePriceCalculated = 0;
+                }
+            }
+
             visa = 0;
+            totalQuittance = coutBsc + totalBePriceCalculated + visa;
+            marchandise.setBe(String.valueOf(be));
+            marchandise.setTotalBePrice(String.valueOf(totalBePriceCalculated));
         }
 
-        double totalQuittance = coutBsc + totalBePriceCalculated + visa;
-
-        marchandise.setBe(String.valueOf(be));
         marchandise.setCoutBsc(String.valueOf(coutBsc));
         marchandise.setVisa(String.valueOf(visa));
         marchandise.setTotalQuittance(String.valueOf(totalQuittance));
-        marchandise.setTotalBePrice(String.valueOf(totalBePriceCalculated));
     }
 
 
@@ -535,6 +571,15 @@ public class MarchandiseServiceImpl implements MarchandiseService {
         dto.setBlFile(marchandise.getBlFile());
         dto.setDeclarationDouaneFile(marchandise.getDeclarationDouaneFile());
         dto.setFactureCommercialeFile(marchandise.getFactureCommercialeFile());
+
+        dto.setNombreVehicule(marchandise.getNombreVehicule());
+        if (marchandise.getVehiculesGroupage() != null) {
+            dto.setVehiculesGroupage(marchandise.getVehiculesGroupage().stream()
+                    .map(vehicule -> new VehiculeItemDto(vehicule.getPoids(), vehicule.getCaf(), vehicule.getNumeroChassis(), vehicule.getVisa(), vehicule.getNumeroDouane(), vehicule.getCoutBsc(), vehicule.getTotal()))
+                    .collect(Collectors.toList()));
+        } else {
+            dto.setVehiculesGroupage(null);
+        }
 
         if (marchandise.getMarchandisesGroupage() != null) {
             dto.setMarchandisesGroupage(marchandise.getMarchandisesGroupage().stream()

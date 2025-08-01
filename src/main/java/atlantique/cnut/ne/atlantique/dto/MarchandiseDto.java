@@ -59,12 +59,13 @@ public class MarchandiseDto {
     private String transporteurCargaison;
     private String idNavireCargaison;
 
-    @Column
+
     private String blFile;
-    @Column
     private String declarationDouaneFile;
-    @Column
     private String factureCommercialeFile;
+
+    private String nombreVehicule;
+    private List<VehiculeItemDto> vehiculesGroupage;
 
     private Date dateDepartureNavireCargaison;
     private Date dateArriveNavireCargaison;
