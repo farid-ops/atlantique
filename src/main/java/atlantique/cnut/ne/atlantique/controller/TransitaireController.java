@@ -69,7 +69,7 @@ public class TransitaireController {
 
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
+//    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
     public ResponseEntity<Map<String, Object>> getAllTransitaires(Pageable pageable) {
         Page<Transitaire> transitairePage = transitaireService.findAllTransitairesPaginated(pageable);
         return ResponseEntity.ok(
@@ -83,7 +83,7 @@ public class TransitaireController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
+//    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
     public ResponseEntity<Map<String, Object>> getTransitaireById(@PathVariable String id) {
         return transitaireService.findTransitaireById(id)
                 .map(transitaire -> ResponseEntity.ok(

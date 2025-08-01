@@ -67,7 +67,7 @@ public class NavireController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
+//    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
     public ResponseEntity<Map<String, Object>> getAllNavires(Pageable pageable) {
         Page<Navire> navirePage = navireService.findAllNaviresPaginated(pageable);
         return ResponseEntity.ok(
@@ -82,7 +82,7 @@ public class NavireController {
 
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
+//    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
     public ResponseEntity<Map<String, Object>> getNavireById(@PathVariable String id) {
         return navireService.findNavireById(id)
                 .map(navire -> ResponseEntity.ok(

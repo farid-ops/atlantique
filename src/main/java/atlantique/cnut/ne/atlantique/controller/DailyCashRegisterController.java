@@ -391,4 +391,90 @@ public class DailyCashRegisterController {
             );
         }
     }
+
+    @PostMapping("/{userId}/open")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    public ResponseEntity<Map<String, Object>> openCashRegisterForUser(
+            @PathVariable String userId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        try {
+            dailyCashRegisterService.openCashRegister(userId, date);
+            return ResponseEntity.ok(
+                    utilService.response(
+                            StatusCode.HTTP_OK.getStatus_code(),
+                            true,
+                            "Caisse ouverte avec succès pour l'utilisateur: " + userId,
+                            null
+                    )
+            );
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(
+                    utilService.response(
+                            StatusCode.HTTP_CONFLICT.getStatus_code(),
+                            false,
+                            e.getMessage(),
+                            null
+                    ),
+                    HttpStatus.CONFLICT
+            );
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                    utilService.response(
+                            StatusCode.HTTP_INTERNAL_SERVER_ERROR.getStatus_code(),
+                            false,
+                            "Erreur lors de l'ouverture de la caisse pour l'utilisateur: " + e.getMessage(),
+                            null
+                    ),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    @PostMapping("/{userId}/close")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    public ResponseEntity<Map<String, Object>> closeCashRegisterForUser(
+            @PathVariable String userId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        try {
+            dailyCashRegisterService.closeCashRegister(userId, date);
+            return ResponseEntity.ok(
+                    utilService.response(
+                            StatusCode.HTTP_OK.getStatus_code(),
+                            true,
+                            "Caisse clôturée avec succès pour l'utilisateur: " + userId,
+                            null
+                    )
+            );
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(
+                    utilService.response(
+                            StatusCode.HTTP_CONFLICT.getStatus_code(),
+                            false,
+                            e.getMessage(),
+                            null
+                    ),
+                    HttpStatus.CONFLICT
+            );
+        } catch (ResourceNotFoundException e) {
+            return new ResponseEntity<>(
+                    utilService.response(
+                            StatusCode.HTTP_NOT_FOUND.getStatus_code(),
+                            false,
+                            e.getMessage(),
+                            null
+                    ),
+                    HttpStatus.NOT_FOUND
+            );
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                    utilService.response(
+                            StatusCode.HTTP_INTERNAL_SERVER_ERROR.getStatus_code(),
+                            false,
+                            "Erreur lors de la clôture de la caisse pour l'utilisateur: " + e.getMessage(),
+                            null
+                    ),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
 }

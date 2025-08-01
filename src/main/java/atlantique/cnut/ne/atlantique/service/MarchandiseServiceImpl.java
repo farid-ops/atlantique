@@ -181,7 +181,7 @@ public class MarchandiseServiceImpl implements MarchandiseService {
         } else if (currentUserRoles.contains("OPERATEUR")) {
             page = marchandiseRepository.findByIdUtilisateur(currentUserId, pageable);
         } else if (currentUserRoles.contains("CAISSIER")) {
-            page = marchandiseRepository.findForCaissierCombined(currentUserId, pageable);
+            page = marchandiseRepository.findByLieuEmissionCargaison(this.getCurrentUserSiteId(), pageable);
         } else if (currentUserRoles.contains("CSITE")) {
             String currentUserSiteId = getCurrentUserSiteId();
             page = marchandiseRepository.findByLieuEmissionCargaison(currentUserSiteId, pageable);
@@ -269,7 +269,6 @@ public class MarchandiseServiceImpl implements MarchandiseService {
                             utilisateurRepository.save(caissier);
                             log.info("Balance du caissier {} créditée de {} pour la marchandise {}", caissierId, totalQuittance, id);
 
-                            // Record deposit in daily cash register
                             dailyCashRegisterService.recordDeposit(caissierId, totalQuittance);
 
                         } catch (NumberFormatException e) {

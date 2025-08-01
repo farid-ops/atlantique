@@ -65,7 +65,7 @@ public class ArmateurController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
+//    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
     public ResponseEntity<Map<String, Object>> getAllArmateurs() {
         List<Armateur> armateurs = armateurService.findAllArmateurs();
         return ResponseEntity.ok(
@@ -79,7 +79,7 @@ public class ArmateurController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
+//    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
     public ResponseEntity<Map<String, Object>> getArmateurById(@PathVariable String id) {
         return armateurService.findArmateurById(id)
                 .map(armateur -> ResponseEntity.ok(

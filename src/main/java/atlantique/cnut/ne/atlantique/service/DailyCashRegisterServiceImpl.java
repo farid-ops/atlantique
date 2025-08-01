@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -171,6 +172,39 @@ public class DailyCashRegisterServiceImpl implements DailyCashRegisterService {
         return dailyCashRegisterRepository.findByCaissierIdAndOperationDate(caissierId, date)
                 .map(register -> !register.isClosed())
                 .orElse(true);
+    }
+
+    @Override
+    @Transactional
+    public void openCashRegister(String userId, LocalDate date) {
+        DailyCashRegister register = dailyCashRegisterRepository.findByCaissierIdAndOperationDate(userId, LocalDate.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant()))
+                .orElse(null);
+
+        if (register != null) {
+            if (!register.isClosed()) {
+                throw new IllegalArgumentException("La caisse est déjà ouverte pour le " + date + ".");
+            }
+            register.setClosed(false);
+            dailyCashRegisterRepository.save(register);
+            log.info("Caisse réouverte pour l'utilisateur {} à la date {}.", userId, date);
+        } else {
+            log.info("Nouvelle caisse ouverte pour l'utilisateur {} à la date {}.", userId, date);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void closeCashRegister(String userId, LocalDate date) {
+        DailyCashRegister register = dailyCashRegisterRepository.findByCaissierIdAndOperationDate(userId, LocalDate.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant()))
+                .orElseThrow(() -> new ResourceNotFoundException("Caisse non trouvée pour l'utilisateur " + userId + " à la date " + date + "."));
+
+        if (register.isClosed()) {
+            throw new IllegalArgumentException("La caisse est déjà clôturée pour le " + date + ".");
+        }
+
+        register.setClosed(true);
+        dailyCashRegisterRepository.save(register);
+        log.info("Caisse clôturée pour l'utilisateur {} à la date {}.", userId, date);
     }
 
 

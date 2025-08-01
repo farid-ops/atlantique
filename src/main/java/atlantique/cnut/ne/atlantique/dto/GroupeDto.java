@@ -47,4 +47,10 @@ public class GroupeDto {
 
     private String signatureImage;
     private String logo;
+
+    private Double coutBSC;
+    private Double tonnage;
+    private Double valeurConteneur10Pieds;
+    private Double valeurConteneur20Pieds;
+    private Double valeurConteneur30Pieds;
 }

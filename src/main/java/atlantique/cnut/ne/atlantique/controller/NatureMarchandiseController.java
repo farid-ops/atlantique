@@ -67,7 +67,7 @@ public class NatureMarchandiseController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
+//    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
     public ResponseEntity<Map<String, Object>> findAllNatureMarchandises() {
         List<NatureMarchandise> natureMarchandisePage = natureMarchandiseService.findAllNatureMarchandises();
         return ResponseEntity.ok(
@@ -81,7 +81,7 @@ public class NatureMarchandiseController {
     }
 
     @GetMapping("/paginated")
-    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
+//    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
     public ResponseEntity<Map<String, Object>> findAllNatureMarchandisesPaginated(Pageable pageable) {
         Page<NatureMarchandise> natureMarchandisePage = natureMarchandiseService.findAllNatureMarchandisesPaginated(pageable);
         return ResponseEntity.ok(
@@ -95,7 +95,7 @@ public class NatureMarchandiseController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
+//    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
     public ResponseEntity<Map<String, Object>> getNatureMarchandiseById(@PathVariable String id) {
         return natureMarchandiseService.findNatureMarchandiseById(id)
                 .map(natureMarchandise -> ResponseEntity.ok(

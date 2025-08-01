@@ -67,7 +67,7 @@ public class UtilisateurController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
+//    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
     public ResponseEntity<Map<String, Object>> getAllUtilisateurs(Pageable pageable) {
         Page<Utilisateur> utilisateurPage = utilisateurService.findAllUtilisateursPaginated(pageable);
         return ResponseEntity.ok(

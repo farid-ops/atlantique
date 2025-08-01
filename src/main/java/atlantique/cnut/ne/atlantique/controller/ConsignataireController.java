@@ -66,7 +66,7 @@ public class ConsignataireController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
+//    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
     public ResponseEntity<Map<String, Object>> getAllConsignataires() {
         List<Consignataire> consignataires = consignataireService.findAllConsignataires();
         return ResponseEntity.ok(
@@ -80,7 +80,7 @@ public class ConsignataireController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
+//    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
     public ResponseEntity<Map<String, Object>> getConsignataireById(@PathVariable String id) {
         return consignataireService.findConsignataireById(id)
                 .map(consignataire -> ResponseEntity.ok(

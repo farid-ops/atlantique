@@ -32,7 +32,7 @@ public interface MarchandiseRepository extends JpaRepository<Marchandise, String
             nativeQuery = true)
     Page<Marchandise> findForCaissierCombined(
             @org.springframework.data.repository.query.Param("caissierId") String caissierId,
-            Pageable pageable // Ajout du paramètre Pageable
+            Pageable pageable // Ajout du paramètre Pageablezz
     );
 
     // Version non paginée de la requête combinée pour le caissier (inchangée)

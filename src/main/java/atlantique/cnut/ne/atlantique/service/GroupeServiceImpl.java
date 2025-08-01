@@ -44,6 +44,12 @@ public class GroupeServiceImpl implements GroupeService {
         groupe.setVisaVehiculeMoins5000kg(groupeDto.getVisaVehiculeMoins5000kg());
         groupe.setVisaVehiculePlus5000kg(groupeDto.getVisaVehiculePlus5000kg());
 
+        groupe.setCoutBSC(groupeDto.getCoutBSC());
+        groupe.setTonnage(groupeDto.getTonnage());
+        groupe.setValeurConteneur10Pieds(groupeDto.getValeurConteneur10Pieds());
+        groupe.setValeurConteneur20Pieds(groupeDto.getValeurConteneur20Pieds());
+        groupe.setValeurConteneur30Pieds(groupeDto.getValeurConteneur30Pieds());
+
         if (logoFile != null && !logoFile.isEmpty()) {
             String uniqueFileName = fileStorageService.save(logoFile);
             groupe.setLogo(uniqueFileName);
@@ -96,6 +102,12 @@ public class GroupeServiceImpl implements GroupeService {
                     existingGroupe.setPrixBeStandard(groupeDto.getPrixBeStandard());
                     existingGroupe.setVisaVehiculeMoins5000kg(groupeDto.getVisaVehiculeMoins5000kg());
                     existingGroupe.setVisaVehiculePlus5000kg(groupeDto.getVisaVehiculePlus5000kg());
+
+                    existingGroupe.setCoutBSC(groupeDto.getCoutBSC());
+                    existingGroupe.setTonnage(groupeDto.getTonnage());
+                    existingGroupe.setValeurConteneur10Pieds(groupeDto.getValeurConteneur10Pieds());
+                    existingGroupe.setValeurConteneur20Pieds(groupeDto.getValeurConteneur20Pieds());
+                    existingGroupe.setValeurConteneur30Pieds(groupeDto.getValeurConteneur30Pieds());
 
                     if (logoFile != null && !logoFile.isEmpty()) {
                         if (existingGroupe.getLogo() != null && !existingGroupe.getLogo().isEmpty()) {

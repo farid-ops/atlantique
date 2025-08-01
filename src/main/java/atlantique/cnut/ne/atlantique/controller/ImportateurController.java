@@ -68,7 +68,7 @@ public class ImportateurController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
+//    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
     public ResponseEntity<Map<String, Object>> getAllImportateurs() {
         List<Importateur> importateurs = importateurService.findAllImportateurs();
         return ResponseEntity.ok(
@@ -82,7 +82,7 @@ public class ImportateurController {
     }
 
     @GetMapping("/paginated")
-    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
+//    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
     public ResponseEntity<Map<String, Object>> findAllImportateursPaginated(Pageable pageable) {
         Page<Importateur> importateurPage = importateurService.findAllImportateursPaginated(pageable);
         return ResponseEntity.ok(
@@ -96,7 +96,7 @@ public class ImportateurController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
+//    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
     public ResponseEntity<Map<String, Object>> getImportateurById(@PathVariable String id) {
         return importateurService.findImportateurById(id)
                 .map(importateur -> ResponseEntity.ok(

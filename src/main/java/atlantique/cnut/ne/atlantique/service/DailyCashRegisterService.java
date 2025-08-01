@@ -23,4 +23,8 @@ public interface DailyCashRegisterService {
     List<DailyCashRegisterDto> getDailySummariesForSite(String siteId, LocalDate startDate, LocalDate endDate);
 
     boolean isCashRegisterOpen(String caissierId, LocalDate date);
+
+    void openCashRegister(String userId, LocalDate date);
+
+    void closeCashRegister(String userId, LocalDate date);
 }

@@ -56,6 +56,17 @@ public class Groupe {
     @Column
     private String logo;
 
+    @Column
+    private Double coutBSC;
+    @Column
+    private Double tonnage;
+    @Column
+    private Double valeurConteneur10Pieds;
+    @Column
+    private Double valeurConteneur20Pieds;
+    @Column
+    private Double valeurConteneur30Pieds;
+
     @CreationTimestamp
     private Date creationDate;
     @UpdateTimestamp

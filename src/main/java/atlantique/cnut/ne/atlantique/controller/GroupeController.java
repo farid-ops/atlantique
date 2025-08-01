@@ -15,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.Map;
@@ -43,6 +42,11 @@ public class GroupeController {
             @RequestParam("prixBeStandard") Double prixBeStandard,
             @RequestParam("visaVehiculeMoins5000kg") Double visaVehiculeMoins5000kg,
             @RequestParam("visaVehiculePlus5000kg") Double visaVehiculePlus5000kg,
+            @RequestParam(value = "coutBSC", required = false) Double coutBSC,
+            @RequestParam(value = "tonnage", required = false) Double tonnage,
+            @RequestParam(value = "valeurConteneur10Pieds", required = false) Double valeurConteneur10Pieds,
+            @RequestParam(value = "valeurConteneur20Pieds", required = false) Double valeurConteneur20Pieds,
+            @RequestParam(value = "valeurConteneur30Pieds", required = false) Double valeurConteneur30Pieds,
             @RequestPart(value = "logoFile", required = false) MultipartFile logoFile,
             @RequestPart(value = "signatureFile", required = false) MultipartFile signatureFile) {
         try {
@@ -50,7 +54,9 @@ public class GroupeController {
                     id,
                     denomination, telephone, email, siteWeb, nif, bp, adresse,
                     prixBeStandard, visaVehiculeMoins5000kg, visaVehiculePlus5000kg,
-                    null, null
+                    null, null,
+                    coutBSC, tonnage,
+                    valeurConteneur10Pieds, valeurConteneur20Pieds, valeurConteneur30Pieds
             );
 
             Groupe newGroupe = groupeService.createGroupe(groupeDto, logoFile, signatureFile);
@@ -100,6 +106,11 @@ public class GroupeController {
             @RequestParam("prixBeStandard") Double prixBeStandard,
             @RequestParam("visaVehiculeMoins5000kg") Double visaVehiculeMoins5000kg,
             @RequestParam("visaVehiculePlus5000kg") Double visaVehiculePlus5000kg,
+            @RequestParam(value = "coutBSC", required = false) Double coutBSC,
+            @RequestParam(value = "tonnage", required = false) Double tonnage,
+            @RequestParam(value = "valeurConteneur10Pieds", required = false) Double valeurConteneur10Pieds,
+            @RequestParam(value = "valeurConteneur20Pieds", required = false) Double valeurConteneur20Pieds,
+            @RequestParam(value = "valeurConteneur30Pieds", required = false) Double valeurConteneur30Pieds,
             @RequestParam(value = "signatureImage", required = false) String signatureImage,
             @RequestParam(value = "logo", required = false) String logo,
             @RequestPart(value = "logoFile", required = false) MultipartFile logoFile,
@@ -109,7 +120,9 @@ public class GroupeController {
                     id,
                     denomination, telephone, email, siteWeb, nif, bp, adresse,
                     prixBeStandard, visaVehiculeMoins5000kg, visaVehiculePlus5000kg,
-                    signatureImage, logo
+                    signatureImage, logo,
+                    coutBSC, tonnage,
+                    valeurConteneur10Pieds, valeurConteneur20Pieds, valeurConteneur30Pieds
             );
 
             Groupe updatedGroupe = groupeService.updateGroupe(id, groupeDto, logoFile, signatureFile);
@@ -147,7 +160,7 @@ public class GroupeController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('SCOPE_SUPERUTILISATEUR', 'SCOPE_ADMINISTRATEUR_GROUPE', 'SCOPE_ADMIN')")
+//    @PreAuthorize("hasAnyAuthority('SCOPE_SUPERUTILISATEUR', 'SCOPE_ADMINISTRATEUR_GROUPE', 'SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> getGroupeById(@PathVariable String id) {
         return groupeService.findGroupeById(id)
                 .map(groupe -> ResponseEntity.ok(
@@ -162,7 +175,7 @@ public class GroupeController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('SCOPE_SUPERUTILISATEUR', 'SCOPE_ADMIN')")
+//    @PreAuthorize("hasAnyAuthority('SCOPE_SUPERUTILISATEUR', 'SCOPE_ADMIN')")
     public ResponseEntity<Map<String, Object>> getAllGroupes() {
         List<Groupe> groupes = groupeService.findAllGroupes();
         return ResponseEntity.ok(
