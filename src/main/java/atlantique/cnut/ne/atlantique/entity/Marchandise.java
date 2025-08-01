@@ -69,6 +69,13 @@ public class Marchandise {
     private String idPortEmbarquementCargaison;
     private String idPortDebarquementCargaison;
 
+    @Column
+    private String blFile;
+    @Column
+    private String declarationDouaneFile;
+    @Column
+    private String factureCommercialeFile;
+
     @CreationTimestamp
     private Date creationDate;
     @UpdateTimestamp

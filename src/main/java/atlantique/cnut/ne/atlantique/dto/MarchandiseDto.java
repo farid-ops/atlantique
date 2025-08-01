@@ -2,8 +2,7 @@ package atlantique.cnut.ne.atlantique.dto;
 
 import atlantique.cnut.ne.atlantique.enums.MarchandiseStatus;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.Column;
 import lombok.*;
 
 import java.util.Date;
@@ -59,6 +58,13 @@ public class MarchandiseDto {
     private String idConsignataireCargaison;
     private String transporteurCargaison;
     private String idNavireCargaison;
+
+    @Column
+    private String blFile;
+    @Column
+    private String declarationDouaneFile;
+    @Column
+    private String factureCommercialeFile;
 
     private Date dateDepartureNavireCargaison;
     private Date dateArriveNavireCargaison;

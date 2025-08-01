@@ -18,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.Date;
@@ -36,31 +37,114 @@ public class MarchandiseServiceImpl implements MarchandiseService {
     private final UtilisateurRepository utilisateurRepository;
     private final DailyCashRegisterService dailyCashRegisterService;
     private final GroupeService groupeService;
+    private final FileStorageService fileStorageService;
 
     @Override
-    public MarchandiseDto createMarchandise(MarchandiseDto marchandiseDto) {
+    public MarchandiseDto createMarchandise(MarchandiseDto marchandiseDto, MultipartFile blFile, MultipartFile declarationDouaneFile, MultipartFile factureCommercialeFile) {
         log.info("Creating new marchandise");
         Marchandise marchandise = convertToEntity(marchandiseDto);
         performCalculations(marchandise);
+
+        if (blFile != null && !blFile.isEmpty()) {
+            String filename = fileStorageService.save(blFile);
+            marchandise.setBlFile(filename);
+        }
+        if (declarationDouaneFile != null && !declarationDouaneFile.isEmpty()) {
+            String filename = fileStorageService.save(declarationDouaneFile);
+            marchandise.setDeclarationDouaneFile(filename);
+        }
+        if (factureCommercialeFile != null && !factureCommercialeFile.isEmpty()) {
+            String filename = fileStorageService.save(factureCommercialeFile);
+            marchandise.setFactureCommercialeFile(filename);
+        }
+
         Marchandise savedMarchandise = marchandiseRepository.save(marchandise);
         return convertToDto(savedMarchandise);
     }
 
     @Override
-    public MarchandiseDto updateMarchandise(String id, MarchandiseDto marchandiseDto) {
+    public MarchandiseDto updateMarchandise(String id, MarchandiseDto marchandiseDto, MultipartFile blFile, MultipartFile declarationDouaneFile, MultipartFile factureCommercialeFile) {
         log.info("Updating marchandise with id: {}", id);
         return marchandiseRepository.findById(id).map(existingMarchandise -> {
 
-            if (existingMarchandise.getStatus() != MarchandiseStatus.BROUILLON && existingMarchandise.getStatus() != MarchandiseStatus.REJETE){
-                throw new IllegalArgumentException("La marchandise avec le statut '" + existingMarchandise.getStatus().getDisplayName() + "' ne peut pas être modifiée.");
+            if (!getCurrentUserRoles().contains("ADMIN") || !getCurrentUserRoles().contains("OPERATEUR") && (existingMarchandise.getStatus() != MarchandiseStatus.BROUILLON && existingMarchandise.getStatus() != MarchandiseStatus.REJETE)) {
+                throw new IllegalArgumentException("La marchandise avec le statut '" + existingMarchandise.getStatus().getDisplayName() + "' ne peut pas être modifiée par un non-ADMIN.");
+            }
+
+            if (marchandiseDto.getStatus() != null && marchandiseDto.getStatus() != existingMarchandise.getStatus()) {
+                // Votre logique existante pour changer le statut...
+                if (marchandiseDto.getStatus() == MarchandiseStatus.SOUMIS_POUR_VALIDATION) {
+                    if (existingMarchandise.getStatus() != MarchandiseStatus.BROUILLON && existingMarchandise.getStatus() != MarchandiseStatus.REJETE) {
+                        throw new IllegalArgumentException("Seules les marchandises en statut BROUILLON ou REJETE peuvent être soumises à validation.");
+                    }
+                    existingMarchandise.setStatus(MarchandiseStatus.SOUMIS_POUR_VALIDATION);
+                    existingMarchandise.setSubmittedByUserId(getCurrentUserId());
+                    existingMarchandise.setSubmissionDate(new Date());
+                } else if (marchandiseDto.getStatus() == MarchandiseStatus.VALIDE || marchandiseDto.getStatus() == MarchandiseStatus.REJETE) {
+                    if (existingMarchandise.getStatus() != MarchandiseStatus.SOUMIS_POUR_VALIDATION) {
+                        throw new IllegalArgumentException("Seules les marchandises en statut SOUMIS_POUR_VALIDATION peuvent être validées ou rejetées.");
+                    }
+                    String caissierId = getCurrentUserId();
+                    if (!dailyCashRegisterService.isCashRegisterOpen(caissierId, LocalDate.now())) {
+                        throw new IllegalArgumentException("La caisse de l'utilisateur est clôturée. Impossible de valider la marchandise.");
+                    }
+
+                    existingMarchandise.setStatus(marchandiseDto.getStatus());
+                    existingMarchandise.setValidatedByUserId(caissierId);
+                    existingMarchandise.setValidationDate(new Date());
+
+                    if (marchandiseDto.getStatus() == MarchandiseStatus.VALIDE) {
+                        Utilisateur caissier = utilisateurRepository.findById(caissierId)
+                                .orElseThrow(() -> new ResourceNotFoundException("Caissier authentifié non trouvé."));
+                        try {
+                            double totalQuittance = Double.parseDouble(existingMarchandise.getTotalQuittance());
+                            caissier.setCashBalance(caissier.getCashBalance() + totalQuittance);
+                            utilisateurRepository.save(caissier);
+                            log.info("Balance du caissier {} créditée de {} pour la marchandise {}", caissierId, totalQuittance, id);
+                            dailyCashRegisterService.recordDeposit(caissierId, totalQuittance);
+                        } catch (NumberFormatException e) {
+                            log.error("Erreur de formatage du totalQuittance pour la marchandise {}: {}", id, existingMarchandise.getTotalQuittance(), e);
+                            throw new IllegalArgumentException("Le champ totalQuittance de la marchandise n'est pas un nombre valide.");
+                        }
+                    }
+                }
             }
 
             Marchandise updatedMarchandise = updateEntityFromDto(existingMarchandise, marchandiseDto);
             this.validateCargaisonDates(updatedMarchandise);
             performCalculations(updatedMarchandise);
+
+            if (blFile != null && !blFile.isEmpty()) {
+                if (existingMarchandise.getBlFile() != null) { fileStorageService.delete(existingMarchandise.getBlFile()); }
+                String filename = fileStorageService.save(blFile);
+                updatedMarchandise.setBlFile(filename);
+            } else if (marchandiseDto.getBlFile() == null) {
+                if (existingMarchandise.getBlFile() != null) { fileStorageService.delete(existingMarchandise.getBlFile()); }
+                updatedMarchandise.setBlFile(null);
+            }
+
+            if (declarationDouaneFile != null && !declarationDouaneFile.isEmpty()) {
+                if (existingMarchandise.getDeclarationDouaneFile() != null) { fileStorageService.delete(existingMarchandise.getDeclarationDouaneFile()); }
+                String filename = fileStorageService.save(declarationDouaneFile);
+                updatedMarchandise.setDeclarationDouaneFile(filename);
+            } else if (marchandiseDto.getDeclarationDouaneFile() == null) {
+                if (existingMarchandise.getDeclarationDouaneFile() != null) { fileStorageService.delete(existingMarchandise.getDeclarationDouaneFile()); }
+                updatedMarchandise.setDeclarationDouaneFile(null);
+            }
+
+            if (factureCommercialeFile != null && !factureCommercialeFile.isEmpty()) {
+                if (existingMarchandise.getFactureCommercialeFile() != null) { fileStorageService.delete(existingMarchandise.getFactureCommercialeFile()); }
+                String filename = fileStorageService.save(factureCommercialeFile);
+                updatedMarchandise.setFactureCommercialeFile(filename);
+            } else if (marchandiseDto.getFactureCommercialeFile() == null) {
+                if (existingMarchandise.getFactureCommercialeFile() != null) { fileStorageService.delete(existingMarchandise.getFactureCommercialeFile()); }
+                updatedMarchandise.setFactureCommercialeFile(null);
+            }
+
+
             Marchandise savedMarchandise = marchandiseRepository.save(updatedMarchandise);
             return convertToDto(savedMarchandise);
-        }).orElseThrow(() -> new ResourceNotFoundException("Marchandise not found with id " + id));
+        }).orElseThrow(() -> new ResourceNotFoundException("Marchandise non trouvée avec l'ID: " + id));
     }
 
     private void validateCargaisonDates(Marchandise marchandise) {
@@ -447,6 +531,10 @@ public class MarchandiseServiceImpl implements MarchandiseService {
 
         dto.setCreationDate(marchandise.getCreationDate());
         dto.setModificationDate(marchandise.getModificationDate());
+
+        dto.setBlFile(marchandise.getBlFile());
+        dto.setDeclarationDouaneFile(marchandise.getDeclarationDouaneFile());
+        dto.setFactureCommercialeFile(marchandise.getFactureCommercialeFile());
 
         if (marchandise.getMarchandisesGroupage() != null) {
             dto.setMarchandisesGroupage(marchandise.getMarchandisesGroupage().stream()

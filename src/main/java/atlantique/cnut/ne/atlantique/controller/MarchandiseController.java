@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -30,9 +31,14 @@ public class MarchandiseController {
 
     @PostMapping
     @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR')")
-    public ResponseEntity<Map<String, Object>> createMarchandise(@RequestBody @Valid MarchandiseDto marchandiseDto) {
+    public ResponseEntity<Map<String, Object>> createMarchandise(
+            @RequestPart("marchandise") @Valid MarchandiseDto marchandiseDto,
+            @RequestPart(value = "blFile", required = false) MultipartFile blFile,
+            @RequestPart(value = "declarationDouaneFile", required = false) MultipartFile declarationDouaneFile,
+            @RequestPart(value = "factureCommercialeFile", required = false) MultipartFile factureCommercialeFile
+    ) {
         try {
-            MarchandiseDto newMarchandise = marchandiseService.createMarchandise(marchandiseDto);
+            MarchandiseDto newMarchandise = marchandiseService.createMarchandise(marchandiseDto, blFile, declarationDouaneFile, factureCommercialeFile);
             return new ResponseEntity<>(
                     utilService.response(
                             StatusCode.HTTP_MARCHANDISE_CREATED.getStatus_code(),
@@ -77,9 +83,16 @@ public class MarchandiseController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR')")
-    public ResponseEntity<Map<String, Object>> updateMarchandise(@PathVariable String id, @RequestBody @Valid MarchandiseDto marchandiseDto) {
+    public ResponseEntity<Map<String, Object>> updateMarchandise(
+            @PathVariable String id,
+            @RequestPart("marchandise") @Valid MarchandiseDto marchandiseDto,
+            @RequestPart(value = "blFile", required = false) MultipartFile blFile,
+            @RequestPart(value = "declarationDouaneFile", required = false) MultipartFile declarationDouaneFile,
+            @RequestPart(value = "factureCommercialeFile", required = false) MultipartFile factureCommercialeFile
+    ) {
         try {
-            MarchandiseDto updatedMarchandise = marchandiseService.updateMarchandise(id, marchandiseDto);
+            System.out.println("file name"+blFile.getOriginalFilename());
+            MarchandiseDto updatedMarchandise = marchandiseService.updateMarchandise(id, marchandiseDto, blFile, declarationDouaneFile, factureCommercialeFile);
             return ResponseEntity.ok(
                     utilService.response(
                             StatusCode.HTTP_MARCHANDISE_UPDATED.getStatus_code(),
