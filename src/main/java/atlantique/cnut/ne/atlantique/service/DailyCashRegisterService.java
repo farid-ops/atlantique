@@ -27,4 +27,6 @@ public interface DailyCashRegisterService {
     void openCashRegister(String userId, LocalDate date);
 
     void closeCashRegister(String userId, LocalDate date);
+
+    List<DailyCashRegisterDto> getDailySummariesForGroup(String groupId, LocalDate startDate, LocalDate endDate);
 }

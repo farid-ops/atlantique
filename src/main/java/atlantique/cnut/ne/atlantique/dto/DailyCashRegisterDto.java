@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Date;
 
@@ -17,7 +18,7 @@ import java.util.Date;
 public class DailyCashRegisterDto {
     private String id;
     private String caissierId;
-    private LocalDate operationDate;
+    private Instant operationDate;
     private double startingBalance;
     private double totalDeposits;
     private double totalWithdrawals;
@@ -26,4 +27,5 @@ public class DailyCashRegisterDto {
     private boolean isClosed;
     private Date creationTimestamp;
     private Date lastUpdateTimestamp;
+    private String caissierName;
 }

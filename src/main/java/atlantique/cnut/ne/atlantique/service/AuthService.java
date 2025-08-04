@@ -3,10 +3,17 @@ package atlantique.cnut.ne.atlantique.service;
 import atlantique.cnut.ne.atlantique.dto.Oauth2DTO;
 
 import java.util.Map;
+import java.util.Set;
 
 public interface AuthService {
 
     Map<String, Object> genToken(Oauth2DTO oauth2DTO);
 
     Map<String, Object> logOut(String msisdn, String accessToken);
+
+    String getLoggedInUserId();
+    Set<String> getLoggedInUserRoles();
+    String getIdSiteUtilisateur();
+
+    String getLoggedInUserGroupId();
 }

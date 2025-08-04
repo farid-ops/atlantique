@@ -99,7 +99,24 @@ public class UtilisateurServiceImpl implements UtilisateurService {
     }
 
     @Override
-    public Page<Utilisateur> findAllUtilisateursPaginated(Pageable pageable) {
+    public List<Utilisateur> findAllUtilisateursByIdGroupe(String idGroupe) {
+        return this.utilisateurRepository.findByIdGroupe(idGroupe);
+    }
+
+    @Override
+    public List<Utilisateur> findAllUtilisateursByIdSite(String idSite) {
+        return this.utilisateurRepository.findByIdSite(idSite);
+    }
+
+
+    @Override
+    public Page<Utilisateur> findAllUtilisateursPaginated(Pageable pageable, String idGroupe, String idSite) {
+        if (idGroupe != null && !idGroupe.isEmpty()) {
+            return utilisateurRepository.findByIdGroupe(idGroupe, pageable);
+        }
+        if (idSite != null && !idSite.isEmpty()) {
+            return utilisateurRepository.findByIdSite(idSite, pageable);
+        }
         return utilisateurRepository.findAll(pageable);
     }
 
@@ -158,5 +175,10 @@ public class UtilisateurServiceImpl implements UtilisateurService {
             throw new ResourceNotFoundException("Utilisateur non trouvé avec l'ID: " + id);
         }
         utilisateurRepository.deleteById(id);
+    }
+
+    @Override
+    public void changePassword(Utilisateur utilisateur, String newPassword) {
+
     }
 }

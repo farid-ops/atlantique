@@ -21,6 +21,8 @@ public class Transitaire {
     private String id;
     @Column
     private String designation;
+    @Column
+    private String idGroupe;
     @CreationTimestamp
     private Date creationDate;
     @UpdateTimestamp

@@ -21,4 +21,5 @@ public class ImportateurDto {
     private String phone;
     @NotBlank(message = "Le NIF ne peut pas être vide.")
     private String nif;
+    private String idGroupe;
 }

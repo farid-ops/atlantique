@@ -27,6 +27,8 @@ public class Importateur {
     private String phone;
     @Column
     private String nif;
+    @Column
+    private String idGroupe;
     @CreationTimestamp
     private Date creationDate;
     @UpdateTimestamp

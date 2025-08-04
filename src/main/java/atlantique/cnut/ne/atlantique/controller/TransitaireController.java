@@ -4,6 +4,7 @@ import atlantique.cnut.ne.atlantique.dto.TransitaireDto;
 import atlantique.cnut.ne.atlantique.entity.Transitaire;
 import atlantique.cnut.ne.atlantique.exceptions.ResourceNotFoundException;
 import atlantique.cnut.ne.atlantique.exceptions.StatusCode;
+import atlantique.cnut.ne.atlantique.service.AuthService;
 import atlantique.cnut.ne.atlantique.service.TransitaireService;
 import atlantique.cnut.ne.atlantique.util.UtilService;
 import org.springframework.data.domain.Page;
@@ -23,15 +24,17 @@ public class TransitaireController {
 
     private final TransitaireService transitaireService;
     private final UtilService utilService;
+    private final AuthService authService;
 
-    public TransitaireController(TransitaireService transitaireService, UtilService utilService) {
+    public TransitaireController(TransitaireService transitaireService, UtilService utilService, AuthService authService) {
         this.transitaireService = transitaireService;
         this.utilService = utilService;
+        this.authService = authService;
     }
 
 
     @PostMapping
-    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ADMIN_GROUPE')")
     public ResponseEntity<Map<String, Object>> createTransitaire(@RequestBody @Valid TransitaireDto transitaireDto) {
         try {
             Transitaire newTransitaire = transitaireService.createTransitaire(transitaireDto);
@@ -68,16 +71,44 @@ public class TransitaireController {
     }
 
 
-    @GetMapping
-//    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
-    public ResponseEntity<Map<String, Object>> getAllTransitaires(Pageable pageable) {
-        Page<Transitaire> transitairePage = transitaireService.findAllTransitairesPaginated(pageable);
+    @GetMapping("/paginated")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ADMIN_GROUPE', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN', 'SCOPE_CAISSIER', 'SCOPE_CSITE')")
+    public ResponseEntity<Map<String, Object>> findAllTransitairesPaginated(Pageable pageable) {
+        Page<Transitaire> transitairePage;
+        if (authService.getLoggedInUserRoles().contains("ADMIN_GROUPE")) {
+            String idGroupe = authService.getLoggedInUserGroupId();
+            transitairePage = transitaireService.findAllTransitairesPaginated(pageable, idGroupe);
+        } else {
+            transitairePage = transitaireService.findAllTransitairesPaginated(pageable, null);
+        }
+
         return ResponseEntity.ok(
                 utilService.response(
                         StatusCode.HTTP_TRANSITAIRE_RETRIEVED.getStatus_code(),
                         true,
                         StatusCode.HTTP_TRANSITAIRE_RETRIEVED.getStatus_message(),
                         transitairePage
+                )
+        );
+    }
+
+    @GetMapping
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ADMIN_GROUPE', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN', 'SCOPE_CAISSIER', 'SCOPE_CSITE')") // Permissions étendues pour la liste
+    public ResponseEntity<Map<String, Object>> getAllTransitaires() {
+        List<Transitaire> transitaires;
+        if (authService.getLoggedInUserRoles().contains("ADMIN_GROUPE")) {
+            String idGroupe = authService.getLoggedInUserGroupId();
+            transitaires = transitaireService.findByIdGroupe(idGroupe);
+        } else {
+            transitaires = transitaireService.findAllTransitaires();
+        }
+
+        return ResponseEntity.ok(
+                utilService.response(
+                        StatusCode.HTTP_TRANSITAIRE_RETRIEVED.getStatus_code(),
+                        true,
+                        StatusCode.HTTP_TRANSITAIRE_RETRIEVED.getStatus_message(),
+                        transitaires
                 )
         );
     }
@@ -99,7 +130,7 @@ public class TransitaireController {
 
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ADMIN_GROUPE')")
     public ResponseEntity<Map<String, Object>> updateTransitaire(@PathVariable String id, @RequestBody @Valid TransitaireDto transitaireDto) {
         try {
             Transitaire updatedTransitaire = transitaireService.updateTransitaire(id, transitaireDto);
@@ -128,7 +159,7 @@ public class TransitaireController {
 
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ADMIN_GROUPE')")
     public ResponseEntity<Map<String, Object>> deleteTransitaire(@PathVariable String id) {
         try {
             transitaireService.deleteTransitaire(id);

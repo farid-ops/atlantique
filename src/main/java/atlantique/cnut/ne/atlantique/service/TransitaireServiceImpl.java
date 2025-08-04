@@ -17,9 +17,11 @@ import java.util.Optional;
 public class TransitaireServiceImpl implements TransitaireService {
 
     private final TransitaireRepository transitaireRepository;
+    private final AuthService authService;
 
-    public TransitaireServiceImpl(TransitaireRepository transitaireRepository) {
+    public TransitaireServiceImpl(TransitaireRepository transitaireRepository, AuthService authService) {
         this.transitaireRepository = transitaireRepository;
+        this.authService = authService;
     }
 
     @Override
@@ -31,6 +33,7 @@ public class TransitaireServiceImpl implements TransitaireService {
 
         Transitaire transitaire = new Transitaire();
         transitaire.setDesignation(transitaireDto.getDesignation());
+        transitaire.setIdGroupe(authService.getLoggedInUserGroupId());
 
         return transitaireRepository.save(transitaire);
     }
@@ -41,13 +44,21 @@ public class TransitaireServiceImpl implements TransitaireService {
     }
 
     @Override
-    public Page<Transitaire> findAllTransitairesPaginated(Pageable pageable) {
+    public Page<Transitaire> findAllTransitairesPaginated(Pageable pageable, String idGroupe) {
+        if (idGroupe != null && !idGroupe.isEmpty()) {
+            return transitaireRepository.findByIdGroupe(idGroupe, pageable);
+        }
         return transitaireRepository.findAll(pageable);
     }
 
     @Override
     public Optional<Transitaire> findTransitaireById(String id) {
         return transitaireRepository.findById(id);
+    }
+
+    @Override
+    public List<Transitaire> findByIdGroupe(String id) {
+        return this.transitaireRepository.findByIdGroupe(id);
     }
 
     @Override

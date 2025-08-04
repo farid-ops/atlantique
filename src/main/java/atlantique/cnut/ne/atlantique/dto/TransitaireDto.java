@@ -14,4 +14,5 @@ import lombok.Setter;
 public class TransitaireDto {
     @NotBlank(message = "La désignation ne peut pas être vide.")
     private String designation;
+    private String idGroupe;
 }

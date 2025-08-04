@@ -67,7 +67,7 @@ public class PaysController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN', 'SCOPE_CSITE', 'SCOPE_CAISSIER')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ADMIN_GROUPE', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN', 'SCOPE_CSITE', 'SCOPE_CAISSIER')")
     public ResponseEntity<Map<String, Object>> getAllPays() {
         List<Pays> paysList = paysService.findAllPays();
         return ResponseEntity.ok(

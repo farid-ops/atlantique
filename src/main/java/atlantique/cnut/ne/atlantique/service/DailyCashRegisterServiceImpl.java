@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -25,11 +26,13 @@ public class DailyCashRegisterServiceImpl implements DailyCashRegisterService {
 
     private final DailyCashRegisterRepository dailyCashRegisterRepository;
     private final UtilisateurRepository utilisateurRepository;
+    private final AuthService authService;
 
     @Override
     @Transactional
     public DailyCashRegisterDto getOrCreateDailyCashRegister(String caissierId) {
         LocalDate today = LocalDate.now();
+        Instant startOfDay = today.atStartOfDay(ZoneId.systemDefault()).toInstant();
         Optional<DailyCashRegister> existingRegister = dailyCashRegisterRepository.findByCaissierIdAndOperationDate(caissierId, today);
 
         if (existingRegister.isPresent()) {
@@ -37,7 +40,7 @@ public class DailyCashRegisterServiceImpl implements DailyCashRegisterService {
         } else {
             DailyCashRegister newRegister = new DailyCashRegister();
             newRegister.setCaissierId(caissierId);
-            newRegister.setOperationDate(today);
+            newRegister.setOperationDate(startOfDay);
             newRegister.setTotalDeposits(0.0);
             newRegister.setTotalWithdrawals(0.0);
             newRegister.setNumberOfTransactions(0);
@@ -207,6 +210,28 @@ public class DailyCashRegisterServiceImpl implements DailyCashRegisterService {
         log.info("Caisse clôturée pour l'utilisateur {} à la date {}.", userId, date);
     }
 
+    @Override
+    public List<DailyCashRegisterDto> getDailySummariesForGroup(String groupId, LocalDate startDate, LocalDate endDate) {
+        List<Utilisateur> usersInGroup = utilisateurRepository.findAll().stream()
+                .filter(user -> user.getIdGroupe() != null && user.getIdGroupe().equals(groupId))
+                .toList();
+
+        if (usersInGroup.isEmpty()) {
+            throw new ResourceNotFoundException("Aucun utilisateur trouvé pour le groupe avec l'ID: " + groupId);
+        }
+
+        List<String> userIds = usersInGroup.stream().map(Utilisateur::getId).toList();
+
+        Instant startOfDay = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+        Instant endOfDay = endDate.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
+
+        List<DailyCashRegister> allSummaries = dailyCashRegisterRepository.findByCaissierIdInAndOperationDateBetween(userIds, startOfDay, endOfDay);
+
+        return allSummaries.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
 
     private DailyCashRegisterDto convertToDto(DailyCashRegister entity) {
         return new DailyCashRegisterDto(
@@ -220,7 +245,8 @@ public class DailyCashRegisterServiceImpl implements DailyCashRegisterService {
                 entity.getNumberOfTransactions(),
                 entity.isClosed(),
                 entity.getCreationTimestamp(),
-                entity.getLastUpdateTimestamp()
+                entity.getLastUpdateTimestamp(),
+                entity.getCaissierName()
         );
     }
 }

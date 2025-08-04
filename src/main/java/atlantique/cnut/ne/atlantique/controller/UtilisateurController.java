@@ -4,6 +4,7 @@ import atlantique.cnut.ne.atlantique.dto.UtilisateurDto;
 import atlantique.cnut.ne.atlantique.entity.Utilisateur;
 import atlantique.cnut.ne.atlantique.exceptions.ResourceNotFoundException;
 import atlantique.cnut.ne.atlantique.exceptions.StatusCode;
+import atlantique.cnut.ne.atlantique.service.AuthService;
 import atlantique.cnut.ne.atlantique.service.UtilisateurService;
 import atlantique.cnut.ne.atlantique.util.UtilService;
 import org.springframework.data.domain.Page;
@@ -16,6 +17,7 @@ import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/v1/utilisateurs")
@@ -23,23 +25,25 @@ public class UtilisateurController {
 
     private final UtilisateurService utilisateurService;
     private final UtilService utilService;
+    private final AuthService authService;
 
-    public UtilisateurController(UtilisateurService utilisateurService, UtilService utilService) {
+    public UtilisateurController(UtilisateurService utilisateurService, UtilService utilService, AuthService authService) {
         this.utilisateurService = utilisateurService;
         this.utilService = utilService;
+        this.authService = authService;
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ADMIN_GROUPE', 'SCOPE_CSITE')")
     public ResponseEntity<Map<String, Object>> createUtilisateur(@RequestBody @Valid UtilisateurDto utilisateurDto) {
         try {
-            Utilisateur newUser = utilisateurService.createUtilisateur(utilisateurDto);
+            Utilisateur newUtilisateur = utilisateurService.createUtilisateur(utilisateurDto);
             return new ResponseEntity<>(
                     utilService.response(
                             StatusCode.HTTP_UTILISATEUR_CREATED.getStatus_code(),
                             true,
                             StatusCode.HTTP_UTILISATEUR_CREATED.getStatus_message(),
-                            newUser
+                            newUtilisateur
                     ),
                     HttpStatus.CREATED
             );
@@ -53,23 +57,49 @@ public class UtilisateurController {
                     ),
                     HttpStatus.CONFLICT
             );
-        } catch (Exception e) {
-            return new ResponseEntity<>(
-                    utilService.response(
-                            StatusCode.HTTP_INTERNAL_SERVER_ERROR.getStatus_code(),
-                            false,
-                            StatusCode.HTTP_INTERNAL_SERVER_ERROR.getStatus_message() + ": " + e.getMessage(),
-                            null
-                    ),
-                    HttpStatus.INTERNAL_SERVER_ERROR
-            );
         }
     }
 
     @GetMapping
-//    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_OPERATEUR', 'SCOPE_STATICIEN')")
-    public ResponseEntity<Map<String, Object>> getAllUtilisateurs(Pageable pageable) {
-        Page<Utilisateur> utilisateurPage = utilisateurService.findAllUtilisateursPaginated(pageable);
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ADMIN_GROUPE', 'SCOPE_CSITE')")
+    public ResponseEntity<Map<String, Object>> getAllUtilisateurs() {
+        List<Utilisateur> utilisateurs;
+        Set<String> roles = authService.getLoggedInUserRoles();
+        if (roles.contains("ADMIN_GROUPE")) {
+            String idGroupe = authService.getLoggedInUserGroupId();
+            utilisateurs = utilisateurService.findAllUtilisateursByIdGroupe(idGroupe);
+        } else if (roles.contains("CSITE")) {
+            String idSite = authService.getIdSiteUtilisateur();
+            utilisateurs = utilisateurService.findAllUtilisateursByIdSite(idSite);
+        } else {
+            utilisateurs = utilisateurService.findAllUtilisateurs();
+        }
+
+        return ResponseEntity.ok(
+                utilService.response(
+                        StatusCode.HTTP_UTILISATEUR_RETRIEVED.getStatus_code(),
+                        true,
+                        StatusCode.HTTP_UTILISATEUR_RETRIEVED.getStatus_message(),
+                        utilisateurs
+                )
+        );
+    }
+
+    @GetMapping("/paginated")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ADMIN_GROUPE', 'SCOPE_CSITE')")
+    public ResponseEntity<Map<String, Object>> findAllUtilisateursPaginated(Pageable pageable) {
+        Page<Utilisateur> utilisateurPage;
+        Set<String> roles = authService.getLoggedInUserRoles();
+        if (roles.contains("ADMIN_GROUPE")) {
+            String idGroupe = authService.getLoggedInUserGroupId();
+            utilisateurPage = utilisateurService.findAllUtilisateursPaginated(pageable, idGroupe, null);
+        } else if (roles.contains("CSITE")) {
+            String idSite = authService.getIdSiteUtilisateur();
+            utilisateurPage = utilisateurService.findAllUtilisateursPaginated(pageable, null, idSite);
+        } else {
+            utilisateurPage = utilisateurService.findAllUtilisateursPaginated(pageable, null, null);
+        }
+
         return ResponseEntity.ok(
                 utilService.response(
                         StatusCode.HTTP_UTILISATEUR_RETRIEVED.getStatus_code(),
@@ -96,7 +126,7 @@ public class UtilisateurController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ADMIN_GROUPE', 'SCOPE_CSITE')")
     public ResponseEntity<Map<String, Object>> updateUtilisateur(@PathVariable String id, @RequestBody @Valid UtilisateurDto utilisateurDto) {
         try {
             Utilisateur updatedUser = utilisateurService.updateUtilisateur(id, utilisateurDto);
@@ -124,7 +154,7 @@ public class UtilisateurController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ADMIN_GROUPE', 'SCOPE_CSITE')")
     public ResponseEntity<Map<String, Object>> deleteUtilisateur(@PathVariable String id) {
         try {
             utilisateurService.deleteUtilisateur(id);

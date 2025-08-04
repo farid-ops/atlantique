@@ -14,9 +14,11 @@ public class UserDetailsImpl implements UserDetails {
 
     private final Utilisateur utilisateur;
     private final String idGroupe;
+    private final String idSite;
 
     public UserDetailsImpl(Utilisateur utilisateur) {
         this.utilisateur = utilisateur;
+        this.idSite = utilisateur.getIdSite();
         this.idGroupe = utilisateur.getIdGroupe();
     }
 

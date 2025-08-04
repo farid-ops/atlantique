@@ -9,6 +9,7 @@ import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Date;
 
@@ -26,9 +27,11 @@ public class DailyCashRegister {
 
     @Column(nullable = false)
     private String caissierId;
+    @Column
+    private String caissierName;
 
     @Column(nullable = false)
-    private LocalDate operationDate;
+    private Instant operationDate;
 
     @Column(nullable = false)
     private double startingBalance;

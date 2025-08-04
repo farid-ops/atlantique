@@ -12,15 +12,14 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -197,6 +196,34 @@ public class AuthServiceImpl implements AuthService {
         }
 
         return this.utilService.response(StatusCode.HTTP_FORBIDDEN.getStatus_code(), false, StatusCode.HTTP_FORBIDDEN.getStatus_message(), null);
+    }
+
+    @Override
+    public String getLoggedInUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication.getName();
+    }
+
+    @Override
+    public Set<String> getLoggedInUserRoles() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Utilisateur utilisateur = this.utilisateurService.findUtilisateurById(authentication.getName()).get();
+
+        return utilisateur.getAuthorites().stream().map(autorite -> autorite.getNom()).collect(Collectors.toSet());
+    }
+
+    @Override
+    public String getIdSiteUtilisateur() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Utilisateur utilisateur = this.utilisateurService.findUtilisateurById(authentication.getName()).get();
+        return utilisateur.getIdSite();
+    }
+
+    @Override
+    public String getLoggedInUserGroupId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Utilisateur utilisateur = this.utilisateurService.findUtilisateurById(authentication.getName()).get();
+        return utilisateur.getIdGroupe();
     }
 
     private boolean isRateLimited(String rateLimitKey){

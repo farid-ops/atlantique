@@ -17,9 +17,11 @@ import java.util.Optional;
 public class ImportateurServiceImpl implements ImportateurService {
 
     private final ImportateurRepository importateurRepository;
+    private final AuthService authService;
 
-    public ImportateurServiceImpl(ImportateurRepository importateurRepository) {
+    public ImportateurServiceImpl(ImportateurRepository importateurRepository, AuthService authService) {
         this.importateurRepository = importateurRepository;
+        this.authService = authService;
     }
 
     @Override
@@ -33,6 +35,7 @@ public class ImportateurServiceImpl implements ImportateurService {
         importateur.setPrenom(importateurDto.getPrenom());
         importateur.setPhone(importateurDto.getPhone());
         importateur.setNif(importateurDto.getNif());
+        importateur.setIdGroupe(authService.getLoggedInUserGroupId());
 
         return importateurRepository.save(importateur);
     }
@@ -43,7 +46,15 @@ public class ImportateurServiceImpl implements ImportateurService {
     }
 
     @Override
-    public Page<Importateur> findAllImportateursPaginated(Pageable pageable) {
+    public List<Importateur> findByIdGroupe(String idGroupe) {
+        return this.importateurRepository.findByIdGroupe(idGroupe);
+    }
+
+    @Override
+    public Page<Importateur> findAllImportateursPaginated(Pageable pageable, String idGroupe) {
+        if (idGroupe != null && !idGroupe.isEmpty()) {
+            return importateurRepository.findByIdGroupe(idGroupe, pageable);
+        }
         return importateurRepository.findAll(pageable);
     }
 

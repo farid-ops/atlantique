@@ -14,8 +14,9 @@ public interface ImportateurService {
     Importateur createImportateur(ImportateurDto importateurDto);
 
     List<Importateur> findAllImportateurs();
+    List<Importateur> findByIdGroupe(String idGroupe);
 
-    Page<Importateur> findAllImportateursPaginated(Pageable pageable);
+    Page<Importateur> findAllImportateursPaginated(Pageable pageable, String idGroupe);
 
     Optional<Importateur> findImportateurById(String id);
 

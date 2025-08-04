@@ -15,11 +15,19 @@ public interface UtilisateurService {
     Utilisateur createUtilisateur(UtilisateurDto utilisateurDto);
 
     List<Utilisateur> findAllUtilisateurs();
-    Page<Utilisateur> findAllUtilisateursPaginated(Pageable pageable);
+
+    List<Utilisateur> findAllUtilisateursByIdGroupe(String idGroupe);
+
+    List<Utilisateur> findAllUtilisateursByIdSite(String idSite);
+
+    Page<Utilisateur> findAllUtilisateursPaginated(Pageable pageable, String idGroupe, String idSite);
 
     Optional<Utilisateur> findUtilisateurById(String id);
 
     Utilisateur updateUtilisateur(String id, UtilisateurDto utilisateurDto);
 
     void deleteUtilisateur(String id);
+
+    void changePassword(Utilisateur utilisateur, String newPassword);
+
 }

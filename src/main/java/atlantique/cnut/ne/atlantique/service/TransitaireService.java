@@ -13,9 +13,10 @@ public interface TransitaireService {
     Transitaire createTransitaire(TransitaireDto transitaireDto);
 
     List<Transitaire> findAllTransitaires();
-    Page<Transitaire> findAllTransitairesPaginated(Pageable pageable);
+    Page<Transitaire> findAllTransitairesPaginated(Pageable pageable, String idGroupe);
 
     Optional<Transitaire> findTransitaireById(String id);
+    List<Transitaire> findByIdGroupe(String id);
 
     Transitaire updateTransitaire(String id, TransitaireDto transitaireDto);
 
