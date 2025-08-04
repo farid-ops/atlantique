@@ -1,6 +1,7 @@
-# -- Étape 1: Construction de l'application Java
-# Utilise une image Java JDK pour compiler et construire le projet
-FROM maven:3.8.7-openjdk-21 AS build
+# Étape 1: Construction de l'application Java
+# Utilise une image Java JDK pour compiler et construire le projet.
+# Le tag 'maven:3.8.7-openjdk-21' a été remplacé par 'maven:3.9-openjdk-21' car il n'existait pas.
+FROM maven:3.9-openjdk-21 AS build
 
 # Définit le répertoire de travail dans le conteneur
 WORKDIR /app
@@ -17,8 +18,10 @@ COPY src ./src
 # Compile et package l'application en un fichier JAR
 RUN mvn package -DskipTests
 
-# -- Étape 2: Création de l'image finale
-# Utilise une image JRE plus petite et sécurisée pour exécuter l'application
+# ---
+# Étape 2: Création de l'image finale
+# Utilise une image JRE plus petite et sécurisée pour exécuter l'application.
+# 'eclipse-temurin:21-jre-jammy' est une image JRE valide et stable.
 FROM eclipse-temurin:21-jre-jammy
 
 # Définit un argument pour le chemin du fichier JAR
