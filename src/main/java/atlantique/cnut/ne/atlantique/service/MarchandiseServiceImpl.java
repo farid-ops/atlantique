@@ -19,10 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -55,6 +52,10 @@ public class MarchandiseServiceImpl implements MarchandiseService {
             String filename = fileStorageService.save(factureCommercialeFile);
             marchandise.setFactureCommercialeFile(filename);
         }
+
+        String siteCode = marchandise.getIdSiteCargaison();
+        String generatedCode = generateCodeBstr(siteCode);
+        marchandise.setCodeMarchandise(generatedCode);
 
         Marchandise savedMarchandise = marchandiseRepository.save(marchandise);
         return convertToDto(savedMarchandise);
@@ -617,5 +618,38 @@ public class MarchandiseServiceImpl implements MarchandiseService {
         return getAuthenticatedUser()
                 .map(Utilisateur::getIdSite)
                 .orElseThrow(() -> new IllegalStateException("Utilisateur authentifié non trouvé ou n'a pas d'ID de site."));
+    }
+
+    public String generateCodeBstr(String siteCode) {
+        List<Marchandise> marchandiseList = this.marchandiseRepository.findBySiteCode(siteCode);
+        LocalDate now = LocalDate.now();
+        String currentYearTwoDigits = String.format("%02d", now.getYear() % 100);
+
+        String prefix = currentYearTwoDigits + siteCode;
+        int nextIncrement = 1;
+
+        Marchandise lastBstrOfCurrentPeriodAndSite = marchandiseList.stream()
+                .filter(bstr -> bstr.getCodeMarchandise() != null && bstr.getCodeMarchandise().startsWith(prefix))
+                .max(Comparator.comparing(Marchandise::getCodeMarchandise))
+                .orElse(null);
+
+        if (lastBstrOfCurrentPeriodAndSite != null) {
+            String lastCodeBstr = lastBstrOfCurrentPeriodAndSite.getCodeMarchandise();
+            String lastIncrementStr = lastCodeBstr.substring(prefix.length());
+            try {
+                if (lastIncrementStr.matches("\\d+")) {
+                    int lastIncrement = Integer.parseInt(lastIncrementStr);
+                    nextIncrement = lastIncrement + 1;
+                } else {
+                    log.warn("Non-numeric suffix found in BESC code: {}. Resetting increment to 1.", lastCodeBstr);
+                }
+            } catch (NumberFormatException e) {
+                log.error("Error parsing increment for BESC code {}: {}", lastCodeBstr, e.getMessage());
+            }
+        }
+
+        String paddedIncrement = String.format("%06d", nextIncrement);
+
+        return prefix + paddedIncrement;
     }
 }

@@ -22,6 +22,7 @@ public class Marchandise {
     private String id;
     private String typeMarchandiseSelect;
     private String caf;
+    private String codeMarchandise;
     private String poids;
     private String type;
     private String nombreColis;

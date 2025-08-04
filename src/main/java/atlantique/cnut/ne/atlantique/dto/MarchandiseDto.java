@@ -21,6 +21,7 @@ public class MarchandiseDto {
     private String caf;
     private String poids;
     private String type;
+    private String codeMarchandise;
     private String nombreColis;
     private String numeroChassis;
     private String numeroDouane;

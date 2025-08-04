@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -51,6 +52,9 @@ public interface MarchandiseRepository extends JpaRepository<Marchandise, String
 
     Page<Marchandise> findByLieuEmissionCargaison(String lieuEmissionCargaison, Pageable pageable);
     List<Marchandise> findByLieuEmissionCargaison(String lieuEmissionCargaison);
+
+    @Query("SELECT m FROM Marchandise m WHERE m.idSiteCargaison = :siteCode ORDER BY m.creationDate DESC")
+    List<Marchandise> findBySiteCode(@Param("siteCode") String siteCode);
 
     // Si un caissier doit voir les marchandises que des opérateurs lui ont soumises spécifiquement
     // et que cet ID de caissier est stocké dans la marchandise, il faudrait :
