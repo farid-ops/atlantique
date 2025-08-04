@@ -19,7 +19,7 @@ RUN mvn package -DskipTests
 
 # -- Étape 2: Création de l'image finale
 # Utilise une image JRE plus petite et sécurisée pour exécuter l'application
-FROM openjdk:21-jre-slim
+FROM eclipse-temurin:21-jre-jammy
 
 # Définit un argument pour le chemin du fichier JAR
 ARG JAR_FILE=target/atlantique-0.0.1-SNAPSHOT.jar
