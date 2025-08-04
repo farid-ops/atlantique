@@ -1,21 +1,10 @@
+FROM openjdk:17-oracle
 
-FROM openjdk-21 AS build
-
-WORKDIR /app
-
-COPY pom.xml .
-
-RUN mvn dependency:go-offline -B
-
-COPY src ./src
+VOLUME /tmp
 
 RUN mvn package -DskipTests
 
-#FROM eclipse-temurin:21-jre-jammy
-
-ARG JAR_FILE=target/atlantique-0.0.1-SNAPSHOT.jar
-
-COPY --from=build /app/${JAR_FILE} app.jar
+COPY target/*.jar app.jar
 
 EXPOSE 7070
 
