@@ -1,6 +1,6 @@
 package atlantique.cnut.ne.atlantique.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,26 +10,24 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.util.Date;
-import java.util.Set;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @Entity
-@Table(name = "gamme")
-public class Gamme {
+@Table(name = "marque")
+public class Marque {
     @Id @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
     @Column
     private String designation;
-    @Column
-    private String idPays;
     @CreationTimestamp
-    private Date creationDate;
+    private Date dateCreation;
     @UpdateTimestamp
-    private Date modificationDate;
-    @OneToMany(mappedBy = "gamme", fetch = FetchType.LAZY)
-    @JsonManagedReference
-    private Set<Marque> marques;
+    private Date dateModification;
+    @ManyToOne
+    @JoinColumn(name = "gamme_id", nullable = false)
+    @JsonBackReference
+    private Gamme gamme;
 }
