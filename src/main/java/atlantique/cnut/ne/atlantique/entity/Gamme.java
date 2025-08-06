@@ -23,8 +23,6 @@ public class Gamme {
     private String id;
     @Column
     private String designation;
-    @Column
-    private String idPays;
     @CreationTimestamp
     private Date creationDate;
     @UpdateTimestamp

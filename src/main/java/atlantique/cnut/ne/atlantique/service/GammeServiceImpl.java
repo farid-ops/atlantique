@@ -26,7 +26,6 @@ public class GammeServiceImpl implements GammeService {
     public Gamme createGamme(GammeDto gammeDto) {
         Gamme gamme = new Gamme();
         gamme.setDesignation(gammeDto.getDesignation());
-        gamme.setIdPays(gammeDto.getIdPays());
         return gammeRepository.save(gamme);
     }
 
@@ -53,7 +52,6 @@ public class GammeServiceImpl implements GammeService {
         return gammeRepository.findById(id)
                 .map(existingGamme -> {
                     existingGamme.setDesignation(gammeDto.getDesignation());
-                    existingGamme.setIdPays(gammeDto.getIdPays());
                     return gammeRepository.save(existingGamme);
                 }).orElseThrow(() -> new ResourceNotFoundException("Gamme non trouvée avec l'ID: " + id));
     }

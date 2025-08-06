@@ -13,6 +13,4 @@ import lombok.Setter;
 public class GammeDto {
     @NotBlank(message = "La désignation ne peut pas être vide.")
     private String designation;
-    @NotBlank(message = "L'ID du pays ne peut pas être vide.")
-    private String idPays;
 }
